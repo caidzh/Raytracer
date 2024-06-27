@@ -2,6 +2,8 @@ use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 use std::{fs::File, process::exit};
+pub mod ray;
+pub mod vec3;
 
 fn main() {
     let path = std::path::Path::new("output/book1/image1.jpg");
