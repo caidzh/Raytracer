@@ -9,8 +9,13 @@ use crate::ray::Ray;
 use crate::vec3::Vector;
 
 fn ray_color(r: &Ray) -> Vector {
-    match hit_sphere(&Vector::new(0.0, 0.0, -1.0), 0.5, r) {
-        true => Vector::new(1.0, 0.0, 0.0) * 255.99,
+    let t:f64=hit_sphere(&Vector::new(0.0, 0.0, -1.0), 0.5, r);
+    match t>0.0 {
+        true => {
+            let v:Vector=r.at(t)-Vector::new(0.0,0.0,-1.0);
+            let n:Vector=v.unit();
+            Vector::new(n.x+1.0,n.y+1.0,n.z+1.0)*0.5*255.99
+        }
         false => {
             let unit_direction: Vector = r.direction.unit();
             let a = 0.5 * (unit_direction.y + 1.0);
@@ -21,17 +26,20 @@ fn ray_color(r: &Ray) -> Vector {
     }
 }
 
-fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> bool {
+fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> f64 {
     let oc: Vector = (*center) - r.origin;
     let a: f64 = r.direction.dot(&r.direction);
     let b: f64 = r.direction.dot(&oc) * (-2.0);
     let c: f64 = oc.dot(&oc) - radius * radius;
     let discriminant: f64 = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+    match discriminant < 0.0 {
+        true => -1.0,
+        false => (-b-discriminant.sqrt())/(2.0*a),
+    }
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image3.jpg");
+    let path = std::path::Path::new("output/book1/image4.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
