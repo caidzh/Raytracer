@@ -9,8 +9,8 @@ use crate::ray::Ray;
 use crate::vec3::Vector;
 
 fn ray_color(r: &Ray) -> Vector {
-    match hit_sphere(&Vector::new(0.0,0.0,-1.0),0.5,r){
-        true => Vector::new(1.0,0.0,0.0)*255.99,
+    match hit_sphere(&Vector::new(0.0, 0.0, -1.0), 0.5, r) {
+        true => Vector::new(1.0, 0.0, 0.0) * 255.99,
         false => {
             let unit_direction: Vector = r.direction.unit();
             let a = 0.5 * (unit_direction.y + 1.0);
@@ -21,13 +21,17 @@ fn ray_color(r: &Ray) -> Vector {
     }
 }
 
-fn hit_sphere(center: &Vector,radius:f64,r: &Ray) -> bool{
-    let oc:Vector=(*center)-r.origin;
-    let a:f64=r.direction.dot(&r.direction);
-    let b:f64=r.direction.dot(&oc)*(-2.0);
-    let c:f64=oc.dot(&oc)-radius*radius;
-    let discriminant:f64=b*b-4.0*a*c;
-    if discriminant>=0.0 {true} else {false}
+fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> bool {
+    let oc: Vector = (*center) - r.origin;
+    let a: f64 = r.direction.dot(&r.direction);
+    let b: f64 = r.direction.dot(&oc) * (-2.0);
+    let c: f64 = oc.dot(&oc) - radius * radius;
+    let discriminant: f64 = b * b - 4.0 * a * c;
+    if discriminant >= 0.0 {
+        true
+    } else {
+        false
+    }
 }
 
 fn main() {
