@@ -1,7 +1,7 @@
 use crate::hittable::{HitRecord, Hittable};
+use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3::Vector;
-use crate::interval::Interval;
 use std::rc::Rc;
 
 pub struct HittableList {
@@ -12,6 +12,9 @@ impl HittableList {
         HittableList {
             objects: Vec::new(),
         }
+    }
+    pub fn size(&self) -> usize {
+        self.objects.len()
     }
     pub fn add(&mut self, object: Rc<dyn Hittable>) {
         self.objects.push(object);
