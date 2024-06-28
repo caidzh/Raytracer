@@ -19,6 +19,11 @@ impl HittableList {
         self.objects.clear();
     }
 }
+impl Default for HittableList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl Hittable for HittableList {
     fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
         let mut temp_rec: HitRecord = HitRecord::new(

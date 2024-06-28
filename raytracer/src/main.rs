@@ -26,9 +26,7 @@ fn ray_color(r: &Ray, world: &HittableList) -> Vector {
         false,
     );
     if world.hit(r, 0.0, INFINITY, &mut rec) {
-        return Vector::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0)
-            * 0.5
-            * 255.99;
+        Vector::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0) * 0.5 * 255.99
     } else {
         let unit_direction: Vector = r.direction.unit();
         let a = 0.5 * (unit_direction.y + 1.0);
@@ -48,7 +46,7 @@ fn main() {
     let image_height = (image_width as f64 / aspect_ratio).round() as u32;
     let image_height = if image_height < 1 { 1 } else { image_height };
 
-    let mut world: HittableList = HittableList::new();
+    let mut world: HittableList = Default::default();
     let sphere1: Sphere = Sphere::new(Vector::new(0.0, 0.0, -1.0), 0.5);
     let sphere2: Sphere = Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0);
     world.add(Rc::new(sphere1));

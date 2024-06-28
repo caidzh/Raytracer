@@ -24,7 +24,7 @@ impl Hittable for Sphere {
 
         let discriminant: f64 = h * h - a * c;
         if discriminant < 0.0 {
-            return false;
+            false
         } else {
             let sqrtd: f64 = discriminant.sqrt();
             let root: f64 = (h - sqrtd) / a;
@@ -39,7 +39,7 @@ impl Hittable for Sphere {
             let outward_normal: Vector = (rec.p - self.center) / self.radius;
             rec.set_face_normal(r, &outward_normal);
 
-            return true;
+            true
         }
     }
 }
