@@ -9,12 +9,12 @@ use crate::ray::Ray;
 use crate::vec3::Vector;
 
 fn ray_color(r: &Ray) -> Vector {
-    let t:f64=hit_sphere(&Vector::new(0.0, 0.0, -1.0), 0.5, r);
-    match t>0.0 {
+    let t: f64 = hit_sphere(&Vector::new(0.0, 0.0, -1.0), 0.5, r);
+    match t > 0.0 {
         true => {
-            let v:Vector=r.at(t)-Vector::new(0.0,0.0,-1.0);
-            let n:Vector=v.unit();
-            Vector::new(n.x+1.0,n.y+1.0,n.z+1.0)*0.5*255.99
+            let v: Vector = r.at(t) - Vector::new(0.0, 0.0, -1.0);
+            let n: Vector = v.unit();
+            Vector::new(n.x + 1.0, n.y + 1.0, n.z + 1.0) * 0.5 * 255.99
         }
         false => {
             let unit_direction: Vector = r.direction.unit();
@@ -34,7 +34,7 @@ fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> f64 {
     let discriminant: f64 = b * b - 4.0 * a * c;
     match discriminant < 0.0 {
         true => -1.0,
-        false => (-b-discriminant.sqrt())/(2.0*a),
+        false => (-b - discriminant.sqrt()) / (2.0 * a),
     }
 }
 
