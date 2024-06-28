@@ -45,10 +45,8 @@ fn main() {
     let pixel_delta_u: Vector = viewport_u / (image_width as f64);
     let pixel_delta_v: Vector = viewport_v / (image_height as f64);
 
-    let viewport_upper_left = camera_center
-        - Vector::new(0.0, 0.0, focal_length)
-        - viewport_u.clone() / 2.0
-        - viewport_v.clone() / 2.0;
+    let viewport_upper_left =
+        camera_center - Vector::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
     let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 
     for j in (0..image_height).rev() {
