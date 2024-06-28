@@ -28,18 +28,18 @@ fn ray_color(r: &Ray) -> Vector {
 
 fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> f64 {
     let oc: Vector = (*center) - r.origin;
-    let a: f64 = r.direction.dot(&r.direction);
-    let b: f64 = r.direction.dot(&oc) * (-2.0);
-    let c: f64 = oc.dot(&oc) - radius * radius;
-    let discriminant: f64 = b * b - 4.0 * a * c;
+    let a: f64 = r.direction.length_square();
+    let h:f64=r.direction.dot(&oc);
+    let c: f64 = oc.length_square() - radius * radius;
+    let discriminant: f64 = h*h-a*c;
     match discriminant < 0.0 {
         true => -1.0,
-        false => (-b - discriminant.sqrt()) / (2.0 * a),
+        false => (h - discriminant.sqrt()) / a,
     }
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image4.jpg");
+    let path = std::path::Path::new("output/book1/image5.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
