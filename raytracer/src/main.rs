@@ -27,11 +27,7 @@ fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> bool {
     let b: f64 = r.direction.dot(&oc) * (-2.0);
     let c: f64 = oc.dot(&oc) - radius * radius;
     let discriminant: f64 = b * b - 4.0 * a * c;
-    if discriminant >= 0.0 {
-        true
-    } else {
-        false
-    }
+    discriminant >= 0.0
 }
 
 fn main() {
