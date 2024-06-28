@@ -1,40 +1,40 @@
 use console::style;
+use hittable::HitRecord;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 use std::f64;
+use std::rc::Rc;
 use std::{fs::File, process::exit};
+pub mod hittable;
+pub mod hittable_list;
 pub mod ray;
+pub mod rtweekend;
+pub mod sphere;
 pub mod vec3;
+use crate::hittable::Hittable;
+use crate::hittable_list::HittableList;
 use crate::ray::Ray;
+use crate::rtweekend::INFINITY;
+use crate::sphere::Sphere;
 use crate::vec3::Vector;
 
-fn ray_color(r: &Ray) -> Vector {
-    let t: f64 = hit_sphere(&Vector::new(0.0, 0.0, -1.0), 0.5, r);
-    match t > 0.0 {
-        true => {
-            let v: Vector = r.at(t) - Vector::new(0.0, 0.0, -1.0);
-            let n: Vector = v.unit();
-            Vector::new(n.x + 1.0, n.y + 1.0, n.z + 1.0) * 0.5 * 255.99
-        }
-        false => {
-            let unit_direction: Vector = r.direction.unit();
-            let a = 0.5 * (unit_direction.y + 1.0);
-            let white: Vector = Vector::new(1.0, 1.0, 1.0);
-            let blue: Vector = Vector::new(0.5, 0.7, 1.0);
-            (white * (1.0 - a) + blue * a) * 255.99
-        }
-    }
-}
-
-fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> f64 {
-    let oc: Vector = (*center) - r.origin;
-    let a: f64 = r.direction.length_square();
-    let h: f64 = r.direction.dot(&oc);
-    let c: f64 = oc.length_square() - radius * radius;
-    let discriminant: f64 = h * h - a * c;
-    match discriminant < 0.0 {
-        true => -1.0,
-        false => (h - discriminant.sqrt()) / a,
+fn ray_color(r: &Ray, world: &HittableList) -> Vector {
+    let mut rec: HitRecord = HitRecord::new(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 0.0),
+        0.0,
+        false,
+    );
+    if world.hit(r, 0.0, INFINITY, &mut rec) {
+        return Vector::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0)
+            * 0.5
+            * 255.99;
+    } else {
+        let unit_direction: Vector = r.direction.unit();
+        let a = 0.5 * (unit_direction.y + 1.0);
+        let white: Vector = Vector::new(1.0, 1.0, 1.0);
+        let blue: Vector = Vector::new(0.5, 0.7, 1.0);
+        (white * (1.0 - a) + blue * a) * 255.99
     }
 }
 
@@ -47,6 +47,13 @@ fn main() {
     let image_width: u32 = 400;
     let image_height = (image_width as f64 / aspect_ratio).round() as u32;
     let image_height = if image_height < 1 { 1 } else { image_height };
+
+    let mut world: HittableList = HittableList::new();
+    let sphere1: Sphere = Sphere::new(Vector::new(0.0, 0.0, -1.0), 0.5);
+    let sphere2: Sphere = Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0);
+    world.add(Rc::new(sphere1));
+    world.add(Rc::new(sphere2));
+
     let quality = 100;
     let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
 
@@ -78,7 +85,7 @@ fn main() {
                 pixel00_loc + (pixel_delta_u * (i as f64)) + (pixel_delta_v * (j as f64));
             let ray_direction = pixel_center - camera_center;
             let r: Ray = Ray::new(camera_center, ray_direction);
-            let pixel_color: Vector = ray_color(&r);
+            let pixel_color: Vector = ray_color(&r, &world);
             *pixel = image::Rgb([
                 pixel_color.x as u8,
                 pixel_color.y as u8,
