@@ -7,6 +7,7 @@ use std::rc::Rc;
 use std::{fs::File, process::exit};
 pub mod hittable;
 pub mod hittable_list;
+pub mod interval;
 pub mod ray;
 pub mod rtweekend;
 pub mod sphere;
@@ -17,6 +18,7 @@ use crate::ray::Ray;
 use crate::rtweekend::INFINITY;
 use crate::sphere::Sphere;
 use crate::vec3::Vector;
+use crate::interval::Interval;
 
 fn ray_color(r: &Ray, world: &HittableList) -> Vector {
     let mut rec: HitRecord = HitRecord::new(
@@ -25,7 +27,7 @@ fn ray_color(r: &Ray, world: &HittableList) -> Vector {
         0.0,
         false,
     );
-    if world.hit(r, 0.0, INFINITY, &mut rec) {
+    if world.hit(r, &Interval::new(0.0, INFINITY), &mut rec) {
         Vector::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0) * 0.5 * 255.99
     } else {
         let unit_direction: Vector = r.direction.unit();
