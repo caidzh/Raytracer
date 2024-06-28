@@ -29,9 +29,9 @@ fn ray_color(r: &Ray) -> Vector {
 fn hit_sphere(center: &Vector, radius: f64, r: &Ray) -> f64 {
     let oc: Vector = (*center) - r.origin;
     let a: f64 = r.direction.length_square();
-    let h:f64=r.direction.dot(&oc);
+    let h: f64 = r.direction.dot(&oc);
     let c: f64 = oc.length_square() - radius * radius;
-    let discriminant: f64 = h*h-a*c;
+    let discriminant: f64 = h * h - a * c;
     match discriminant < 0.0 {
         true => -1.0,
         false => (h - discriminant.sqrt()) / a,
