@@ -9,6 +9,7 @@ use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::rtweekend::random_double;
 use crate::rtweekend::INFINITY;
 use crate::vec3::Vector;
 
@@ -16,6 +17,8 @@ pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
     pub image_height: u32,
+    pub samples_per_pixel: u32,
+    pub pixel_samples_scale: f64,
     pub center: Vector,
     pub pixel00_loc: Vector,
     pub pixel_delta_u: Vector,
@@ -25,9 +28,11 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            aspect_ratio: 0.0,
-            image_width: 0,
+            aspect_ratio: 16.0 / 9.0,
+            image_width: 400,
             image_height: 0,
+            samples_per_pixel: 10,
+            pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
@@ -38,7 +43,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image5.jpg");
+        let path = std::path::Path::new("output/book1/image6.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -52,18 +57,13 @@ impl Camera {
         };
         for j in (0..self.image_height).rev() {
             for i in 0..self.image_width {
-                let pixel = img.get_pixel_mut(i, j);
-                let pixel_center = self.pixel00_loc
-                    + (self.pixel_delta_u * (i as f64))
-                    + (self.pixel_delta_v * (j as f64));
-                let ray_direction = pixel_center - self.center;
-                let r: Ray = Ray::new(self.center, ray_direction);
-                let pixel_color: Vector = Self::ray_color(&r, &world);
-                *pixel = image::Rgb([
-                    pixel_color.x as u8,
-                    pixel_color.y as u8,
-                    pixel_color.z as u8,
-                ]);
+                let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
+                for _ in 0..self.samples_per_pixel {
+                    let r: Ray = self.get_ray(i, j);
+                    pixel_color = pixel_color + Self::ray_color(&r, world);
+                }
+                pixel_color = pixel_color * self.pixel_samples_scale;
+                Self::write_color(&mut img, i, j, pixel_color)
             }
             progress.inc(1);
         }
@@ -87,6 +87,7 @@ impl Camera {
         } else {
             self.image_height
         };
+        self.pixel_samples_scale = 1.0 / (self.samples_per_pixel as f64);
         self.center = Vector::new(0.0, 0.0, 0.0);
         let focal_length: f64 = 1.0;
         let viewport_height: f64 = 2.0;
@@ -100,6 +101,18 @@ impl Camera {
             self.center - Vector::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         self.pixel00_loc = viewport_upper_left + (self.pixel_delta_u + self.pixel_delta_v) * 0.5;
     }
+    fn sample_square() -> Vector {
+        Vector::new(random_double() - 0.5, random_double() - 0.5, 0.0)
+    }
+    fn get_ray(&self, i: u32, j: u32) -> Ray {
+        let offset: Vector = Self::sample_square();
+        let pixel_sample: Vector = self.pixel00_loc
+            + self.pixel_delta_u * (i as f64 + offset.x)
+            + self.pixel_delta_v * (j as f64 + offset.y);
+        let ray_origin: Vector = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+        Ray::new(ray_origin, ray_direction)
+    }
     fn ray_color(r: &Ray, world: &HittableList) -> Vector {
         let mut rec: HitRecord = HitRecord::new(
             Vector::new(0.0, 0.0, 0.0),
@@ -108,13 +121,21 @@ impl Camera {
             false,
         );
         if world.hit(r, &Interval::new(0.0, INFINITY), &mut rec) {
-            Vector::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0) * 0.5 * 255.99
+            Vector::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0) * 0.5
         } else {
             let unit_direction: Vector = r.direction.unit();
             let a = 0.5 * (unit_direction.y + 1.0);
             let white: Vector = Vector::new(1.0, 1.0, 1.0);
             let blue: Vector = Vector::new(0.5, 0.7, 1.0);
-            (white * (1.0 - a) + blue * a) * 255.99
+            white * (1.0 - a) + blue * a
         }
+    }
+    fn write_color(img: &mut RgbImage, i: u32, j: u32, pixel_color: Vector) {
+        let pixel = img.get_pixel_mut(i, j);
+        let intensity: Interval = Interval::new(0.000, 0.999);
+        let rbyte: u8 = (intensity.clamp(pixel_color.x) * 255.99).round() as u8;
+        let gbyte: u8 = (intensity.clamp(pixel_color.y) * 255.99).round() as u8;
+        let bbyte: u8 = (intensity.clamp(pixel_color.z) * 255.99).round() as u8;
+        *pixel = image::Rgb([rbyte, gbyte, bbyte]);
     }
 }

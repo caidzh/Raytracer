@@ -21,8 +21,6 @@ fn main() {
     world.add(Rc::new(sphere2));
 
     let mut cam: Camera = Default::default();
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
 
     cam.render(&world);
 
