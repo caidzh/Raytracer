@@ -45,7 +45,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image9.jpg");
+        let path = std::path::Path::new("output/book1/image10.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -126,7 +126,7 @@ impl Camera {
             false,
         );
         if world.hit(r, &Interval::new(0.001, INFINITY), &mut rec) {
-            let direction: Vector = Vector::random_on_hemisphere(&rec.normal);
+            let direction: Vector = rec.normal + Vector::random_unit_vector();
             Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5
         } else {
             let unit_direction: Vector = r.direction.unit();
