@@ -23,6 +23,7 @@ pub struct Camera {
     pub pixel00_loc: Vector,
     pub pixel_delta_u: Vector,
     pub pixel_delta_v: Vector,
+    pub max_depth: u32,
 }
 
 impl Default for Camera {
@@ -37,13 +38,14 @@ impl Default for Camera {
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
+            max_depth: 50,
         }
     }
 }
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image7.jpg");
+        let path = std::path::Path::new("output/book1/image8.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -60,7 +62,7 @@ impl Camera {
                 let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel {
                     let r: Ray = self.get_ray(i, j);
-                    pixel_color = pixel_color + Self::ray_color(&r, world);
+                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth, world);
                 }
                 pixel_color = pixel_color * self.pixel_samples_scale;
                 Self::write_color(&mut img, i, j, pixel_color)
@@ -113,7 +115,10 @@ impl Camera {
         let ray_direction = pixel_sample - ray_origin;
         Ray::new(ray_origin, ray_direction)
     }
-    fn ray_color(r: &Ray, world: &HittableList) -> Vector {
+    fn ray_color(r: &Ray, depth: u32, world: &HittableList) -> Vector {
+        if depth == 0 {
+            return Vector::new(0.0, 0.0, 0.0);
+        }
         let mut rec: HitRecord = HitRecord::new(
             Vector::new(0.0, 0.0, 0.0),
             Vector::new(0.0, 0.0, 0.0),
@@ -122,7 +127,7 @@ impl Camera {
         );
         if world.hit(r, &Interval::new(0.0, INFINITY), &mut rec) {
             let direction: Vector = Vector::random_on_hemisphere(&rec.normal);
-            Self::ray_color(&Ray::new(rec.p, direction), world) * 0.5
+            Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5
         } else {
             let unit_direction: Vector = r.direction.unit();
             let a = 0.5 * (unit_direction.y + 1.0);
