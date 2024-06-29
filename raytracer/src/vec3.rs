@@ -1,3 +1,4 @@
+use crate::rtweekend::{random_double, random_double_range};
 use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Copy, Clone)]
@@ -37,6 +38,35 @@ impl Vector {
     }
     pub fn print(&self) {
         println!("x:{} y:{} z:{}", self.x, self.y, self.z);
+    }
+    pub fn random() -> Vector {
+        Vector::new(random_double(), random_double(), random_double())
+    }
+    pub fn random_range(min: f64, max: f64) -> Vector {
+        Vector::new(
+            random_double_range(min, max),
+            random_double_range(min, max),
+            random_double_range(min, max),
+        )
+    }
+    pub fn random_in_unit_sphere() -> Vector {
+        loop {
+            let p: Vector = Self::random_range(-1.0, 1.0);
+            if p.length_square() < 1.0 {
+                return p;
+            }
+        }
+    }
+    pub fn random_unit_vector() -> Vector {
+        Self::random_in_unit_sphere().unit()
+    }
+    pub fn random_on_hemisphere(normal: &Vector) -> Vector {
+        let on_unit_sphere: Vector = Self::random_unit_vector();
+        if on_unit_sphere.dot(normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            on_unit_sphere * -1.0
+        }
     }
 }
 impl Add for Vector {
