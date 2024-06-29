@@ -45,7 +45,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image11.jpg");
+        let path = std::path::Path::new("output/book1/image12.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -65,7 +65,7 @@ impl Camera {
                     pixel_color = pixel_color + Self::ray_color(&r, self.max_depth, world);
                 }
                 pixel_color = pixel_color * self.pixel_samples_scale;
-                Self::write_color(&mut img, i, j, pixel_color)
+                Self::write_color(&mut img, i, j, &mut pixel_color)
             }
             progress.inc(1);
         }
@@ -127,7 +127,7 @@ impl Camera {
         );
         if world.hit(r, &Interval::new(0.001, INFINITY), &mut rec) {
             let direction: Vector = rec.normal + Vector::random_unit_vector();
-            Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.9
+            Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5
         } else {
             let unit_direction: Vector = r.direction.unit();
             let a = 0.5 * (unit_direction.y + 1.0);
@@ -136,12 +136,22 @@ impl Camera {
             white * (1.0 - a) + blue * a
         }
     }
-    fn write_color(img: &mut RgbImage, i: u32, j: u32, pixel_color: Vector) {
+    fn write_color(img: &mut RgbImage, i: u32, j: u32, pixel_color: &mut Vector) {
         let pixel = img.get_pixel_mut(i, j);
         let intensity: Interval = Interval::new(0.000, 0.999);
+        pixel_color.x = Self::linear_to_gamma(pixel_color.x);
+        pixel_color.y = Self::linear_to_gamma(pixel_color.y);
+        pixel_color.z = Self::linear_to_gamma(pixel_color.z);
         let rbyte: u8 = (intensity.clamp(pixel_color.x) * 255.99).round() as u8;
         let gbyte: u8 = (intensity.clamp(pixel_color.y) * 255.99).round() as u8;
         let bbyte: u8 = (intensity.clamp(pixel_color.z) * 255.99).round() as u8;
         *pixel = image::Rgb([rbyte, gbyte, bbyte]);
+    }
+    fn linear_to_gamma(linear_component: f64) -> f64 {
+        if linear_component > 0.0 {
+            linear_component.sqrt()
+        } else {
+            0.0
+        }
     }
 }
