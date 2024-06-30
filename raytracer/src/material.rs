@@ -64,9 +64,42 @@ impl Material for Metal {
         scattered: &mut Ray,
     ) -> bool {
         let mut reflected: Vector = Vector::reflect(&r_in.direction.unit(), &rec.normal);
-        reflected=reflected.unit()+(Vector::random_unit_vector()*self.fuzz);
+        reflected = reflected.unit() + (Vector::random_unit_vector() * self.fuzz);
         *scattered = Ray::new(rec.p, reflected);
         *attenuation = self.albedo;
-        scattered.direction.dot(&rec.normal)>0.0
+        scattered.direction.dot(&rec.normal) > 0.0
+    }
+}
+
+pub struct Dielectric {
+    refraction_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(a: f64) -> Self {
+        Self {
+            refraction_index: a,
+        }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vector,
+        scattered: &mut Ray,
+    ) -> bool {
+        *attenuation = Vector::new(1.0, 1.0, 1.0);
+        let ri = if rec.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
+        let unit_direction = r_in.direction.unit();
+        let refracted = Vector::refract(&unit_direction, &rec.normal, ri);
+        *scattered = Ray::new(rec.p, refracted);
+        true
     }
 }
