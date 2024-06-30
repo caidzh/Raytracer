@@ -12,7 +12,7 @@ pub mod vec3;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
-use crate::material::{Lambertian, Metal};
+use crate::material::{Dielectric, Lambertian, Metal};
 use crate::sphere::Sphere;
 use crate::vec3::Vector;
 
@@ -21,7 +21,7 @@ fn main() {
 
     let material_ground = Rc::new(Lambertian::new(Vector::new(0.8, 0.8, 0.0)));
     let material_center = Rc::new(Lambertian::new(Vector::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(Metal::new(Vector::new(0.8, 0.8, 0.8), 0.3));
+    let material_left = Rc::new(Dielectric::new(1.50));
     let material_right = Rc::new(Metal::new(Vector::new(0.8, 0.6, 0.2), 1.0));
 
     let sphere1: Sphere = Sphere::new(Vector::new(0.0, -100.5, -1.0), 100.0, material_ground);

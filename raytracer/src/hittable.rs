@@ -23,6 +23,7 @@ impl HitRecord {
         }
     }
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: &Vector) {
+        // println!("{}",r.direction.dot(outward_normal));
         self.front_face = r.direction.dot(outward_normal) < 0.0;
         match self.front_face {
             true => {

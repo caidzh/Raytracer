@@ -77,8 +77,7 @@ impl Vector {
         (*v) - (*n) * (product * 2.0)
     }
     pub fn refract(uv: &Vector, n: &Vector, etai_over_etat: f64) -> Vector {
-        let ruv: Vector = Vector::new(-uv.x, -uv.y, -uv.z);
-        let cos_theta = n.dot(&ruv).min(1.0);
+        let cos_theta = (n.dot(&((*uv) * -1.0))).min(1.0);
         let r_out_perp = ((*uv) + (*n) * cos_theta) * etai_over_etat;
         let r_out_parallel = (*n) * (-((1.0 - r_out_perp.length_square()).abs().sqrt()));
         r_out_perp + r_out_parallel
