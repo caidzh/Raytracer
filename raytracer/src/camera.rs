@@ -46,7 +46,7 @@ impl Default for Camera {
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
             max_depth: 50,
-            vfov: 90.0,
+            vfov: 20.0,
             lookfrom: Vector::new(-2.0, 2.0, 1.0),
             lookat: Vector::new(0.0, 0.0, -1.0),
             vup: Vector::new(0.0, 1.0, 0.0),
@@ -59,7 +59,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image20.jpg");
+        let path = std::path::Path::new("output/book1/image21.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
