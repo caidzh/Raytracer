@@ -115,6 +115,16 @@ impl Sub for Vector {
         }
     }
 }
+impl Mul for Vector {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self::Output {
+        Vector {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+}
 impl Mul<f64> for Vector {
     type Output = Self;
     fn mul(self, other: f64) -> Self::Output {
