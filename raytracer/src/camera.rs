@@ -25,6 +25,12 @@ pub struct Camera {
     pub pixel_delta_v: Vector,
     pub max_depth: u32,
     pub vfov: f64,
+    pub lookfrom:Vector,
+    pub lookat:Vector,
+    pub vup:Vector,
+    pub u:Vector,
+    pub v:Vector,
+    pub w:Vector,
 }
 
 impl Default for Camera {
@@ -41,13 +47,19 @@ impl Default for Camera {
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
             max_depth: 50,
             vfov: 90.0,
+            lookfrom:Vector::new(-2.0,2.0,1.0),
+            lookat:Vector::new(0.0,0.0,-1.0),
+            vup:Vector::new(0.0,1.0,0.0),
+            u:Vector::new(0.0,0.0,0.0),
+            v:Vector::new(0.0,0.0,0.0),
+            w:Vector::new(0.0,0.0,0.0),
         }
     }
 }
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image19.jpg");
+        let path = std::path::Path::new("output/book1/image20.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -92,19 +104,22 @@ impl Camera {
             self.image_height
         };
         self.pixel_samples_scale = 1.0 / (self.samples_per_pixel as f64);
-        self.center = Vector::new(0.0, 0.0, 0.0);
-        let focal_length: f64 = 1.0;
+        self.center = self.lookfrom;
+        let focal_length: f64 = (self.lookfrom-self.lookat).length();
         let theta = degrees_to_radians(self.vfov);
         let h = (theta / 2.0).tan();
         let viewport_height: f64 = 2.0 * h * focal_length;
         let viewport_width: f64 =
             viewport_height * (self.image_width as f64 / (self.image_height as f64));
-        let viewport_u: Vector = Vector::new(viewport_width, 0.0, 0.0);
-        let viewport_v: Vector = Vector::new(0.0, -viewport_height, 0.0);
+        self.w=(self.lookfrom-self.lookat).unit();
+        self.u=self.vup.cross(&self.w).unit();
+        self.v=self.w.cross(&self.u);
+        let viewport_u: Vector = self.u*viewport_width;
+        let viewport_v: Vector = self.v*(-viewport_height);
         self.pixel_delta_u = viewport_u / (self.image_width as f64);
         self.pixel_delta_v = viewport_v / (self.image_height as f64);
         let viewport_upper_left =
-            self.center - Vector::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+            self.center - self.w*focal_length - viewport_u / 2.0 - viewport_v / 2.0;
         self.pixel00_loc = viewport_upper_left + (self.pixel_delta_u + self.pixel_delta_v) * 0.5;
     }
     fn sample_square() -> Vector {
