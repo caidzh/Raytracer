@@ -4,7 +4,6 @@ use indicatif::ProgressBar;
 use std::f64;
 use std::fs::File;
 
-use crate::hittable::HitRecord;
 use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::interval::Interval;
@@ -32,7 +31,7 @@ impl Default for Camera {
             aspect_ratio: 16.0 / 9.0,
             image_width: 400,
             image_height: 0,
-            samples_per_pixel: 10,
+            samples_per_pixel: 100,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -45,7 +44,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image12.jpg");
+        let path = std::path::Path::new("output/book1/image13.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -119,15 +118,22 @@ impl Camera {
         if depth == 0 {
             return Vector::new(0.0, 0.0, 0.0);
         }
-        let mut rec: HitRecord = HitRecord::new(
-            Vector::new(0.0, 0.0, 0.0),
-            Vector::new(0.0, 0.0, 0.0),
-            0.0,
-            false,
-        );
-        if world.hit(r, &Interval::new(0.001, INFINITY), &mut rec) {
-            let direction: Vector = rec.normal + Vector::random_unit_vector();
-            Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5
+        if let Some(rec) = world.hit(r, &Interval::new(0.001, INFINITY)) {
+            // let direction: Vector = rec.normal + Vector::random_unit_vector();
+            // Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5
+            let mut scattered: Ray =
+                Ray::new(Vector::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0));
+            let mut attenuation: Vector = Vector::new(0.0, 0.0, 0.0);
+            let mat = rec.mat.as_ref().unwrap();
+            if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+                let col = Self::ray_color(&scattered, depth - 1, world);
+                return Vector::new(
+                    attenuation.x * col.x,
+                    attenuation.y * col.y,
+                    attenuation.z * col.z,
+                );
+            }
+            Vector::new(0.0, 0.0, 0.0)
         } else {
             let unit_direction: Vector = r.direction.unit();
             let a = 0.5 * (unit_direction.y + 1.0);
