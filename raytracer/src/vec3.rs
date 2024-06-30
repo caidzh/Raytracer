@@ -82,6 +82,18 @@ impl Vector {
         let r_out_parallel = (*n) * (-((1.0 - r_out_perp.length_square()).abs().sqrt()));
         r_out_perp + r_out_parallel
     }
+    pub fn random_in_unit_disk() -> Vector {
+        loop {
+            let p: Vector = Vector::new(
+                random_double_range(-1.0, 1.0),
+                random_double_range(-1.0, 1.0),
+                0.0,
+            );
+            if p.length_square() < 1.0 {
+                return p;
+            }
+        }
+    }
 }
 impl Add for Vector {
     type Output = Self;

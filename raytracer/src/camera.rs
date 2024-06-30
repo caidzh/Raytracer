@@ -31,6 +31,10 @@ pub struct Camera {
     pub u: Vector,
     pub v: Vector,
     pub w: Vector,
+    pub defocus_angle: f64,
+    pub focus_dist: f64,
+    pub defocus_disk_u: Vector,
+    pub defocus_disk_v: Vector,
 }
 
 impl Default for Camera {
@@ -53,13 +57,17 @@ impl Default for Camera {
             u: Vector::new(0.0, 0.0, 0.0),
             v: Vector::new(0.0, 0.0, 0.0),
             w: Vector::new(0.0, 0.0, 0.0),
+            defocus_angle: 10.0,
+            focus_dist: 3.4,
+            defocus_disk_u: Vector::new(0.0, 0.0, 0.0),
+            defocus_disk_v: Vector::new(0.0, 0.0, 0.0),
         }
     }
 }
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image21.jpg");
+        let path = std::path::Path::new("output/book1/image22.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -105,10 +113,10 @@ impl Camera {
         };
         self.pixel_samples_scale = 1.0 / (self.samples_per_pixel as f64);
         self.center = self.lookfrom;
-        let focal_length: f64 = (self.lookfrom - self.lookat).length();
+        // let focal_length: f64 = (self.lookfrom - self.lookat).length();
         let theta = degrees_to_radians(self.vfov);
         let h = (theta / 2.0).tan();
-        let viewport_height: f64 = 2.0 * h * focal_length;
+        let viewport_height: f64 = 2.0 * h * self.focus_dist;
         let viewport_width: f64 =
             viewport_height * (self.image_width as f64 / (self.image_height as f64));
         self.w = (self.lookfrom - self.lookat).unit();
@@ -119,8 +127,11 @@ impl Camera {
         self.pixel_delta_u = viewport_u / (self.image_width as f64);
         self.pixel_delta_v = viewport_v / (self.image_height as f64);
         let viewport_upper_left =
-            self.center - self.w * focal_length - viewport_u / 2.0 - viewport_v / 2.0;
+            self.center - self.w * self.focus_dist - viewport_u / 2.0 - viewport_v / 2.0;
         self.pixel00_loc = viewport_upper_left + (self.pixel_delta_u + self.pixel_delta_v) * 0.5;
+        let defocus_radius = self.focus_dist * (degrees_to_radians(self.defocus_angle / 2.0)).tan();
+        self.defocus_disk_u = self.u * defocus_radius;
+        self.defocus_disk_v = self.v * defocus_radius;
     }
     fn sample_square() -> Vector {
         Vector::new(random_double() - 0.5, random_double() - 0.5, 0.0)
@@ -130,9 +141,17 @@ impl Camera {
         let pixel_sample: Vector = self.pixel00_loc
             + self.pixel_delta_u * (i as f64 + offset.x)
             + self.pixel_delta_v * (j as f64 + offset.y);
-        let ray_origin: Vector = self.center;
+        let ray_origin: Vector = if self.defocus_angle <= 0.0 {
+            self.center
+        } else {
+            self.defocus_disk_sample()
+        };
         let ray_direction = pixel_sample - ray_origin;
         Ray::new(ray_origin, ray_direction)
+    }
+    fn defocus_disk_sample(&self) -> Vector {
+        let p = Vector::random_in_unit_disk();
+        self.center + (self.defocus_disk_u * p.x) + (self.defocus_disk_v * p.y)
     }
     fn ray_color(r: &Ray, depth: u32, world: &HittableList) -> Vector {
         if depth == 0 {
