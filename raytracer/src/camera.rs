@@ -8,6 +8,7 @@ use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::random_double;
 use crate::rtweekend::INFINITY;
 use crate::vec3::Vector;
@@ -23,6 +24,7 @@ pub struct Camera {
     pub pixel_delta_u: Vector,
     pub pixel_delta_v: Vector,
     pub max_depth: u32,
+    pub vfov: f64,
 }
 
 impl Default for Camera {
@@ -38,13 +40,14 @@ impl Default for Camera {
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
             max_depth: 50,
+            vfov: 90.0,
         }
     }
 }
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image18.jpg");
+        let path = std::path::Path::new("output/book1/image19.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -91,7 +94,9 @@ impl Camera {
         self.pixel_samples_scale = 1.0 / (self.samples_per_pixel as f64);
         self.center = Vector::new(0.0, 0.0, 0.0);
         let focal_length: f64 = 1.0;
-        let viewport_height: f64 = 2.0;
+        let theta = degrees_to_radians(self.vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height: f64 = 2.0 * h * focal_length;
         let viewport_width: f64 =
             viewport_height * (self.image_width as f64 / (self.image_height as f64));
         let viewport_u: Vector = Vector::new(viewport_width, 0.0, 0.0);
