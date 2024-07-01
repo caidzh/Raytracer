@@ -39,15 +39,23 @@ fn main() {
                 let sphere_material: Rc<dyn Material>;
                 if choose_mat < 0.8 {
                     let albedo = Vector::random() * Vector::random();
-                    sphere_material = Rc::new(Lambertian::new(albedo))
+                    let center2 = center + Vector::new(0.0, random_double_range(0.0, 0.5), 0.0);
+                    sphere_material = Rc::new(Lambertian::new(albedo));
+                    world.add(Rc::new(Sphere::new_moving(
+                        center,
+                        center2,
+                        0.2,
+                        sphere_material,
+                    )))
                 } else if choose_mat < 0.95 {
                     let albedo = Vector::random_range(0.5, 1.0);
                     let fuzz = random_double_range(0.0, 0.5);
-                    sphere_material = Rc::new(Metal::new(albedo, fuzz))
+                    sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                    world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)))
                 } else {
-                    sphere_material = Rc::new(Dielectric::new(1.5))
+                    sphere_material = Rc::new(Dielectric::new(1.5));
+                    world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)))
                 }
-                world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)))
             }
         }
     }

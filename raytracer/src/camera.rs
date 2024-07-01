@@ -41,9 +41,9 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             aspect_ratio: 16.0 / 9.0,
-            image_width: 1200,
+            image_width: 400,
             image_height: 0,
-            samples_per_pixel: 500,
+            samples_per_pixel: 100,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -67,7 +67,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: &HittableList) {
-        let path = std::path::Path::new("output/book1/image22.jpg");
+        let path = std::path::Path::new("output/book2/image1.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -147,7 +147,8 @@ impl Camera {
             self.defocus_disk_sample()
         };
         let ray_direction = pixel_sample - ray_origin;
-        Ray::new(ray_origin, ray_direction)
+        let ray_time = random_double();
+        Ray::new(ray_origin, ray_direction, ray_time)
     }
     fn defocus_disk_sample(&self) -> Vector {
         let p = Vector::random_in_unit_disk();
@@ -161,7 +162,7 @@ impl Camera {
             // let direction: Vector = rec.normal + Vector::random_unit_vector();
             // Self::ray_color(&Ray::new(rec.p, direction), depth - 1, world) * 0.5
             let mut scattered: Ray =
-                Ray::new(Vector::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0));
+                Ray::new(Vector::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0), 0.0);
             let mut attenuation: Vector = Vector::new(0.0, 0.0, 0.0);
             let mat = rec.mat.as_ref().unwrap();
             if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
