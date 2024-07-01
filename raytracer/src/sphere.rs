@@ -5,18 +5,18 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vector;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Sphere {
     pub center1: Vector,
     pub radius: f64,
-    pub mat: Option<Rc<dyn Material>>,
+    pub mat: Option<Arc<dyn Material>>,
     pub is_moving: bool,
     pub center_vec: Vector,
     pub bbox: AABB,
 }
 impl Sphere {
-    pub fn new(c: Vector, r: f64, m: Rc<dyn Material>) -> Self {
+    pub fn new(c: Vector, r: f64, m: Arc<dyn Material>) -> Self {
         Self {
             center1: (c),
             radius: (r),
@@ -29,7 +29,7 @@ impl Sphere {
             },
         }
     }
-    pub fn new_moving(c: Vector, d: Vector, r: f64, m: Rc<dyn Material>) -> Self {
+    pub fn new_moving(c: Vector, d: Vector, r: f64, m: Arc<dyn Material>) -> Self {
         Self {
             center1: (c),
             radius: (r),

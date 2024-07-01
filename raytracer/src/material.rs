@@ -2,7 +2,7 @@ use crate::hittable::HitRecord;
 use crate::ray::Ray;
 use crate::rtweekend::random_double;
 use crate::vec3::Vector;
-pub trait Material {
+pub trait Material:Send+Sync {
     fn scatter(
         &self,
         _r_in: &Ray,

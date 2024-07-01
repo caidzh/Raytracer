@@ -3,6 +3,8 @@ use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 use std::f64;
 use std::fs::File;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
@@ -13,6 +15,7 @@ use crate::rtweekend::random_double;
 use crate::rtweekend::INFINITY;
 use crate::vec3::Vector;
 
+#[derive(Clone)]
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
@@ -41,7 +44,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             aspect_ratio: 16.0 / 9.0,
-            image_width: 400,
+            image_width: 1200,
             image_height: 0,
             samples_per_pixel: 100,
             pixel_samples_scale: 0.0,
@@ -66,33 +69,52 @@ impl Default for Camera {
 }
 
 impl Camera {
-    pub fn render(&mut self, world: &HittableList) {
+    pub fn render(&mut self, world: HittableList) {
         let path = std::path::Path::new("output/book2/image1.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
         let quality = 100;
-        let mut img: RgbImage = ImageBuffer::new(self.image_width, self.image_height);
+        let img: RgbImage = ImageBuffer::new(self.image_width, self.image_height);
 
         let progress = if option_env!("CI").unwrap_or_default() == "true" {
             ProgressBar::hidden()
         } else {
             ProgressBar::new((self.image_height * self.image_width) as u64)
         };
+        let img = Arc::new(Mutex::new(img.clone()));
+        let progress = Arc::new(Mutex::new(progress));
+        let mut rend_lines = vec![];
         for j in (0..self.image_height).rev() {
-            for i in 0..self.image_width {
-                let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
-                for _ in 0..self.samples_per_pixel {
-                    let r: Ray = self.get_ray(i, j);
-                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth, world);
-                }
-                pixel_color = pixel_color * self.pixel_samples_scale;
-                Self::write_color(&mut img, i, j, &mut pixel_color);
-                progress.inc(1);
-            }
-        }
-        progress.finish();
+            let img = Arc::clone(&img);
+            let progress = Arc::clone(&progress);
+            let world = world.clone();
+            let copy=self.clone();
+            let rend_line = thread::spawn(move ||{
+                for i in 0..copy.image_width {
+                    let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
+                    for _ in 0..copy.samples_per_pixel {
+                        let r: Ray = copy.get_ray(i, j);
+                        pixel_color = pixel_color + Self::ray_color(&r, copy.max_depth, &world);
+                    }
+                    pixel_color = pixel_color * copy.pixel_samples_scale;
+                    let mut img = img.lock().unwrap();
+                    Self::write_color(&mut img,i,j,&mut pixel_color);
+                    drop(img);
 
+                    let progress = progress.lock().unwrap();
+                    progress.inc(1);
+                    // Self::write_color(&mut img, i, j, &mut pixel_color);
+                }
+            });
+            rend_lines.push(rend_line);
+        }
+        for rend_line in rend_lines {
+            rend_line.join().unwrap();
+        }
+        progress.lock().unwrap().finish();
+        let img = Some(Arc::try_unwrap(img).unwrap().into_inner().unwrap());
+        let img = img.as_ref().unwrap().clone();
         println!(
             "Ouput image as \"{}\"",
             style(path.to_str().unwrap()).yellow()

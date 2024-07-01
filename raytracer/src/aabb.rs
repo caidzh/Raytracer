@@ -51,11 +51,11 @@ impl AABB {
     }
     pub fn axis_interval(&self, n: u32) -> Interval {
         if n == 1 {
-            return self.y;
+            self.y
         } else if n == 2 {
-            return self.z;
+            self.z
         } else {
-            return self.x;
+            self.x
         }
     }
     pub fn hit(&self, r: &Ray, ray_t: &Interval) -> bool {

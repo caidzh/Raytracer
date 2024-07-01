@@ -30,11 +30,11 @@ impl Vector {
     }
     pub fn at(&self, n: u32) -> f64 {
         if n == 1 {
-            return self.y;
+            self.y
         } else if n == 2 {
-            return self.z;
+            self.z
         } else {
-            return self.x;
+            self.x
         }
     }
     pub fn unit(&self) -> Vector {

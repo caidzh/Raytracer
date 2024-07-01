@@ -1,5 +1,5 @@
 use std::process::exit;
-use std::rc::Rc;
+use std::sync::Arc;
 pub mod aabb;
 pub mod bvh;
 pub mod camera;
@@ -24,8 +24,8 @@ use crate::vec3::Vector;
 fn main() {
     let mut world: HittableList = Default::default();
 
-    let ground_material = Rc::new(Lambertian::new(Vector::new(0.5, 0.5, 0.5)));
-    world.add(Rc::new(Sphere::new(
+    let ground_material = Arc::new(Lambertian::new(Vector::new(0.5, 0.5, 0.5)));
+    world.add(Arc::new(Sphere::new(
         Vector::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material,
@@ -40,12 +40,12 @@ fn main() {
                 b as f64 + 0.9 * random_double(),
             );
             if (center - Vector::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let sphere_material: Rc<dyn Material>;
+                let sphere_material: Arc<dyn Material>;
                 if choose_mat < 0.8 {
                     let albedo = Vector::random() * Vector::random();
                     let center2 = center + Vector::new(0.0, random_double_range(0.0, 0.5), 0.0);
-                    sphere_material = Rc::new(Lambertian::new(albedo));
-                    world.add(Rc::new(Sphere::new_moving(
+                    sphere_material = Arc::new(Lambertian::new(albedo));
+                    world.add(Arc::new(Sphere::new_moving(
                         center,
                         center2,
                         0.2,
@@ -54,43 +54,43 @@ fn main() {
                 } else if choose_mat < 0.95 {
                     let albedo = Vector::random_range(0.5, 1.0);
                     let fuzz = random_double_range(0.0, 0.5);
-                    sphere_material = Rc::new(Metal::new(albedo, fuzz));
-                    world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)))
+                    sphere_material = Arc::new(Metal::new(albedo, fuzz));
+                    world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)))
                 } else {
-                    sphere_material = Rc::new(Dielectric::new(1.5));
-                    world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)))
+                    sphere_material = Arc::new(Dielectric::new(1.5));
+                    world.add(Arc::new(Sphere::new(center, 0.2, sphere_material)))
                 }
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric::new(1.5));
-    world.add(Rc::new(Sphere::new(
+    let material1 = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(Sphere::new(
         Vector::new(0.0, 1.0, 0.0),
         1.0,
         material1,
     )));
 
-    let material2 = Rc::new(Lambertian::new(Vector::new(0.4, 0.2, 0.1)));
-    world.add(Rc::new(Sphere::new(
+    let material2 = Arc::new(Lambertian::new(Vector::new(0.4, 0.2, 0.1)));
+    world.add(Arc::new(Sphere::new(
         Vector::new(-4.0, 1.0, 0.0),
         1.0,
         material2,
     )));
 
-    let material3 = Rc::new(Metal::new(Vector::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Rc::new(Sphere::new(
+    let material3 = Arc::new(Metal::new(Vector::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Arc::new(Sphere::new(
         Vector::new(4.0, 1.0, 0.0),
         1.0,
         material3,
     )));
 
     let world_node = BvhNode::initialise(&mut world);
-    world.initialise(Rc::new(world_node));
+    world.initialise(Arc::new(world_node));
 
     let mut cam: Camera = Default::default();
 
-    cam.render(&world);
+    cam.render(world);
 
     exit(0);
 }
