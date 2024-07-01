@@ -19,3 +19,8 @@ pub fn random_double_range(min: f64, max: f64) -> f64 {
     let range = Uniform::new(min, max);
     rng.sample(range)
 }
+
+pub fn random_int_range(min: u32, max: u32) -> u32 {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..=max)
+}

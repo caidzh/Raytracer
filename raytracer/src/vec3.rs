@@ -28,6 +28,15 @@ impl Vector {
             z: self.x * other.y - self.y * other.x,
         }
     }
+    pub fn at(&self, n: u32) -> f64 {
+        if n == 1 {
+            return self.y;
+        } else if n == 2 {
+            return self.z;
+        } else {
+            return self.x;
+        }
+    }
     pub fn unit(&self) -> Vector {
         let len: f64 = self.length();
         Vector {

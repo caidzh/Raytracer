@@ -87,9 +87,9 @@ impl Camera {
                     pixel_color = pixel_color + Self::ray_color(&r, self.max_depth, world);
                 }
                 pixel_color = pixel_color * self.pixel_samples_scale;
-                Self::write_color(&mut img, i, j, &mut pixel_color)
+                Self::write_color(&mut img, i, j, &mut pixel_color);
+                progress.inc(1);
             }
-            progress.inc(1);
         }
         progress.finish();
 

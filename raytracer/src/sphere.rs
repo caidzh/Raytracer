@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::material::Material;
@@ -12,6 +13,7 @@ pub struct Sphere {
     pub mat: Option<Rc<dyn Material>>,
     pub is_moving: bool,
     pub center_vec: Vector,
+    pub bbox: AABB,
 }
 impl Sphere {
     pub fn new(c: Vector, r: f64, m: Rc<dyn Material>) -> Self {
@@ -21,6 +23,10 @@ impl Sphere {
             mat: Some(m),
             is_moving: false,
             center_vec: Vector::new(0.0, 0.0, 0.0),
+            bbox: {
+                let rvec = Vector::new(r, r, r);
+                AABB::point_new(&(c - rvec), &(c + rvec))
+            },
         }
     }
     pub fn new_moving(c: Vector, d: Vector, r: f64, m: Rc<dyn Material>) -> Self {
@@ -30,6 +36,12 @@ impl Sphere {
             mat: Some(m),
             is_moving: (true),
             center_vec: (d - c),
+            bbox: {
+                let rvec = Vector::new(r, r, r);
+                let box1 = AABB::point_new(&(c - rvec), &(c + rvec));
+                let box2 = AABB::point_new(&(d - rvec), &(d + rvec));
+                AABB::box_new(&box1, &box2)
+            },
         }
     }
     pub fn sphere_center(&self, time: f64) -> Vector {
@@ -75,5 +87,8 @@ impl Hittable for Sphere {
 
             Some(rec)
         }
+    }
+    fn bounding_box(&self) -> AABB {
+        self.bbox
     }
 }

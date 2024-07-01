@@ -1,5 +1,7 @@
 use std::process::exit;
 use std::rc::Rc;
+pub mod aabb;
+pub mod bvh;
 pub mod camera;
 pub mod hittable;
 pub mod hittable_list;
@@ -9,6 +11,8 @@ pub mod ray;
 pub mod rtweekend;
 pub mod sphere;
 pub mod vec3;
+
+use bvh::BvhNode;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
@@ -80,6 +84,9 @@ fn main() {
         1.0,
         material3,
     )));
+
+    let world_node = BvhNode::initialise(&mut world);
+    world.initialise(Rc::new(world_node));
 
     let mut cam: Camera = Default::default();
 
