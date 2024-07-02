@@ -23,7 +23,7 @@ use crate::rtweekend::{random_double, random_double_range};
 use crate::sphere::Sphere;
 use crate::vec3::Vector;
 
-fn bouncing_spheres(){
+fn bouncing_spheres() {
     let mut world: HittableList = Default::default();
     let checker = Arc::new(CheckerTexture::color_new(
         0.32,
@@ -98,9 +98,9 @@ fn bouncing_spheres(){
     cam.render(world);
 }
 
-fn checkered_spheres(){
+fn checkered_spheres() {
     let mut world: HittableList = Default::default();
-    let checker=Arc::new(CheckerTexture::color_new(
+    let checker = Arc::new(CheckerTexture::color_new(
         0.32,
         Vector::new(0.2, 0.3, 0.1),
         Vector::new(0.9, 0.9, 0.9),
@@ -121,11 +121,10 @@ fn checkered_spheres(){
     cam.render(world);
 }
 fn main() {
-    let f=random_double_range(0.0,1.0);
-    if f<0.001{
+    let f = random_double_range(0.0, 1.0);
+    if f < 0.001 {
         bouncing_spheres();
-    }
-    else{
+    } else {
         checkered_spheres();
     }
     exit(0);
