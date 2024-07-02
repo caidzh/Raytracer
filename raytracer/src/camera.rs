@@ -44,7 +44,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             aspect_ratio: 16.0 / 9.0,
-            image_width: 1200,
+            image_width: 400,
             image_height: 0,
             samples_per_pixel: 100,
             pixel_samples_scale: 0.0,
@@ -60,7 +60,7 @@ impl Default for Camera {
             u: Vector::new(0.0, 0.0, 0.0),
             v: Vector::new(0.0, 0.0, 0.0),
             w: Vector::new(0.0, 0.0, 0.0),
-            defocus_angle: 0.6,
+            defocus_angle: 0.0,
             focus_dist: 10.0,
             defocus_disk_u: Vector::new(0.0, 0.0, 0.0),
             defocus_disk_v: Vector::new(0.0, 0.0, 0.0),
@@ -70,7 +70,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book2/image2.jpg");
+        let path = std::path::Path::new("output/book2/image3.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
