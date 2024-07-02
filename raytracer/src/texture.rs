@@ -56,7 +56,7 @@ impl Texture for CheckerTexture {
 
         let iseven = (xinteger + yinteger + zinteger) % 2 == 0;
         if iseven {
-            return self.even.value(u, v, p);
+            self.even.value(u, v, p)
         } else {
             self.odd.value(u, v, p)
         }

@@ -82,7 +82,7 @@ impl Camera {
         } else {
             ProgressBar::new((self.image_height * self.image_width) as u64)
         };
-        let img = Arc::new(Mutex::new(img.clone()));
+        let img = Arc::new(Mutex::new(img));
         let progress = Arc::new(Mutex::new(progress));
         let mut rend_lines = vec![];
         for j in (0..self.image_height).rev() {
