@@ -1,5 +1,7 @@
 use crate::vec3::Vector;
 use std::sync::Arc;
+use crate::image::RtwImage;
+use crate::interval::Interval;
 pub trait Texture: Send + Sync {
     fn value(&self, u: f64, v: f64, p: Vector) -> Vector;
 }
@@ -60,5 +62,30 @@ impl Texture for CheckerTexture {
         } else {
             self.odd.value(u, v, p)
         }
+    }
+}
+
+pub struct ImageTexture{
+    pub image:RtwImage,
+}
+
+impl ImageTexture{
+    pub fn new(image_filename:&str)->Self{
+        Self { image: RtwImage::new(image_filename) }
+    }
+}
+
+impl Texture for ImageTexture{
+    fn value(&self,u:f64,v:f64,_p:Vector)->Vector{
+        if self.image.image_height <= 0{
+            return Vector::new(0.0,1.0,1.0);
+        }
+        let u=Interval::new(0.0,1.0).clamp(u);
+        let v=1.0-Interval::new(0.0,1.0).clamp(v);
+        let i=(self.image.image_width as f64*u) as i32;
+        let j=(self.image.image_height as f64*v) as i32;
+        let pixel=self.image.pixel_data(i,j);
+        let color_scale=1.0/255.0;
+        Vector::new(pixel[0] as f64,pixel[1] as f64,pixel[2] as f64)*color_scale
     }
 }
