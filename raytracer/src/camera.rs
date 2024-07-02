@@ -70,7 +70,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book2/image1.jpg");
+        let path = std::path::Path::new("output/book2/image2.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -89,8 +89,8 @@ impl Camera {
             let img = Arc::clone(&img);
             let progress = Arc::clone(&progress);
             let world = world.clone();
-            let copy=self.clone();
-            let rend_line = thread::spawn(move ||{
+            let copy = self.clone();
+            let rend_line = thread::spawn(move || {
                 for i in 0..copy.image_width {
                     let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
                     for _ in 0..copy.samples_per_pixel {
@@ -99,7 +99,7 @@ impl Camera {
                     }
                     pixel_color = pixel_color * copy.pixel_samples_scale;
                     let mut img = img.lock().unwrap();
-                    Self::write_color(&mut img,i,j,&mut pixel_color);
+                    Self::write_color(&mut img, i, j, &mut pixel_color);
                     drop(img);
 
                     let progress = progress.lock().unwrap();

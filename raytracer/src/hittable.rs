@@ -11,6 +11,8 @@ pub struct HitRecord {
     pub normal: Vector,
     pub mat: Option<Arc<dyn Material>>,
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
 }
 impl HitRecord {
@@ -20,6 +22,8 @@ impl HitRecord {
             normal: b,
             mat: None,
             t: c,
+            u: 0.0,
+            v: 0.0,
             front_face: d,
         }
     }
@@ -37,7 +41,7 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable :Send+Sync{
+pub trait Hittable: Send + Sync {
     fn hit(&self, r: &Ray, ray_t: &Interval) -> Option<HitRecord>;
     fn bounding_box(&self) -> AABB;
 }

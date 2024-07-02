@@ -10,9 +10,11 @@ pub mod material;
 pub mod ray;
 pub mod rtweekend;
 pub mod sphere;
+pub mod texture;
 pub mod vec3;
 
 use bvh::BvhNode;
+use texture::CheckerTexture;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
@@ -24,11 +26,21 @@ use crate::vec3::Vector;
 fn main() {
     let mut world: HittableList = Default::default();
 
-    let ground_material = Arc::new(Lambertian::new(Vector::new(0.5, 0.5, 0.5)));
+    // let ground_material = Arc::new(Lambertian::new(Vector::new(0.5, 0.5, 0.5)));
+    // world.add(Arc::new(Sphere::new(
+    //     Vector::new(0.0, -1000.0, 0.0),
+    //     1000.0,
+    //     ground_material,
+    // )));
+    let checker = Arc::new(CheckerTexture::color_new(
+        0.32,
+        Vector::new(0.2, 0.3, 0.1),
+        Vector::new(0.9, 0.9, 0.9),
+    ));
     world.add(Arc::new(Sphere::new(
         Vector::new(0.0, -1000.0, 0.0),
         1000.0,
-        ground_material,
+        Arc::new(Lambertian::arc_new(checker)),
     )));
 
     for a in -11..11 {
