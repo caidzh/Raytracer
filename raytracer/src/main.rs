@@ -5,6 +5,7 @@ pub mod bvh;
 pub mod camera;
 pub mod hittable;
 pub mod hittable_list;
+pub mod image;
 pub mod interval;
 pub mod material;
 pub mod ray;
@@ -12,7 +13,6 @@ pub mod rtweekend;
 pub mod sphere;
 pub mod texture;
 pub mod vec3;
-pub mod image;
 
 use bvh::BvhNode;
 use texture::{CheckerTexture, ImageTexture};
@@ -122,13 +122,13 @@ fn checkered_spheres() {
     cam.render(world);
 }
 
-fn earth(){
-    let earth_texture=Arc::new(ImageTexture::new("earthmap.jpg"));
-    let earth_surface=Arc::new(Lambertian::arc_new(earth_texture));
-    let globe=Arc::new(Sphere::new(Vector::new(0.0,0.0,0.0),2.0,earth_surface));
+fn earth() {
+    let earth_texture = Arc::new(ImageTexture::new("earthmap.jpg"));
+    let earth_surface = Arc::new(Lambertian::arc_new(earth_texture));
+    let globe = Arc::new(Sphere::new(Vector::new(0.0, 0.0, 0.0), 2.0, earth_surface));
 
     let mut cam: Camera = Default::default();
-    let mut world=HittableList::default();
+    let mut world = HittableList::default();
     world.initialise(globe);
     cam.render(world);
 }

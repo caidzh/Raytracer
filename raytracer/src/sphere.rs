@@ -89,7 +89,7 @@ impl Hittable for Sphere {
             rec.p = r.at(rec.t);
             let outward_normal: Vector = (rec.p - self.center1) / self.radius;
             rec.set_face_normal(r, &outward_normal);
-            (rec.u,rec.v)=Self::get_sphere_uv(&outward_normal);
+            (rec.u, rec.v) = Self::get_sphere_uv(&outward_normal);
             rec.mat = self.mat.clone();
 
             Some(rec)
