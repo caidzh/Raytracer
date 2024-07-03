@@ -109,6 +109,6 @@ impl NoiseTexture {
 
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: Vector) -> Vector {
-        Vector::new(1.0, 1.0, 1.0) * self.noise.noise(p * self.scale)
+        Vector::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.noise.noise(p * self.scale))
     }
 }

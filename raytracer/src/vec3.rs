@@ -1,7 +1,7 @@
 use crate::rtweekend::{random_double, random_double_range};
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Vector {
     pub x: f64,
     pub y: f64,
