@@ -34,10 +34,37 @@ impl Perlin {
         }
     }
     pub fn noise(&self, p: Vector) -> f64 {
-        let i = ((4.0 * p.x) as i32) & 255;
-        let j = ((4.0 * p.y) as i32) & 255;
-        let k = ((4.0 * p.z) as i32) & 255;
-        self.randfloat
-            [(self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]) as usize]
+        let u = p.x - p.x.floor();
+        let v = p.y - p.y.floor();
+        let w = p.z - p.z.floor();
+        let i = p.x.floor() as i32;
+        let j = p.y.floor() as i32;
+        let k = p.z.floor() as i32;
+        let mut c: [[[f64; 2]; 2]; 2] = Default::default();
+        for (di, a) in c.iter_mut().enumerate() {
+            for (dj, b) in a.iter_mut().enumerate() {
+                for (dk, d) in b.iter_mut().enumerate() {
+                    *d = self.randfloat[(self.perm_x[((i + di as i32) & 255) as usize]
+                        ^ self.perm_y[((j + dj as i32) & 255) as usize]
+                        ^ self.perm_z[((k + dk as i32) & 255) as usize])
+                        as usize];
+                }
+            }
+        }
+        Self::trilinear_interp(c, u, v, w)
+    }
+    fn trilinear_interp(c: [[[f64; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
+        let mut accum: f64 = 0.0;
+        for (i, a) in c.iter().enumerate() {
+            for (j, b) in a.iter().enumerate() {
+                for (k, d) in b.iter().enumerate() {
+                    accum += (i as f64 * u + (1.0 - i as f64) * (1.0 - u))
+                        * (j as f64 * v + (1.0 - j as f64) * (1.0 - v))
+                        * (k as f64 * w + (1.0 - k as f64) * (1.0 - w))
+                        * d;
+                }
+            }
+        }
+        accum
     }
 }
