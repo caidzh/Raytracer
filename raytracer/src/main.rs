@@ -8,6 +8,7 @@ pub mod hittable_list;
 pub mod image;
 pub mod interval;
 pub mod material;
+pub mod perlin;
 pub mod ray;
 pub mod rtweekend;
 pub mod sphere;
@@ -22,6 +23,7 @@ use crate::hittable_list::HittableList;
 use crate::material::{Dielectric, Lambertian, Material, Metal};
 use crate::rtweekend::{random_double, random_double_range};
 use crate::sphere::Sphere;
+use crate::texture::NoiseTexture;
 use crate::vec3::Vector;
 
 fn bouncing_spheres() {
@@ -117,7 +119,7 @@ fn checkered_spheres() {
         Arc::new(Lambertian::arc_new(checker)),
     )));
 
-    let mut cam: Camera = Default::default();
+    let mut cam: Camera = Camera::default();
 
     cam.render(world);
 }
@@ -132,13 +134,30 @@ fn earth() {
     world.initialise(globe);
     cam.render(world);
 }
+fn perlin_spheres() {
+    let mut world: HittableList = Default::default();
+    let pertext = Arc::new(NoiseTexture::new());
+    world.add(Arc::new(Sphere::new(
+        Vector::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Arc::new(Lambertian::arc_new(pertext.clone())),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Vector::new(0.0, 2.0, 0.0),
+        2.0,
+        Arc::new(Lambertian::arc_new(pertext)),
+    )));
+    let mut cam: Camera = Default::default();
+    cam.render(world);
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.001 {
         bouncing_spheres();
         checkered_spheres();
-    } else {
         earth();
+    } else {
+        perlin_spheres();
     }
     exit(0);
 }
