@@ -14,7 +14,7 @@ pub struct Perlin {
 impl Perlin {
     pub fn initialise(&mut self) {
         for _i in 0..POINT_COUNT {
-            self.randvec.push(Vector::random_range(-1.0,1.0).unit());
+            self.randvec.push(Vector::random_range(-1.0, 1.0).unit());
         }
         Perlin::perlin_generate_perm(&mut self.perm_x);
         Perlin::perlin_generate_perm(&mut self.perm_y);
