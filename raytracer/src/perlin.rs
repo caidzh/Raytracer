@@ -37,9 +37,9 @@ impl Perlin {
         let mut u = p.x - p.x.floor();
         let mut v = p.y - p.y.floor();
         let mut w = p.z - p.z.floor();
-        u=u*u*(3.0-2.0*u);
-        v=v*v*(3.0-2.0*v);
-        w=w*w*(3.0-2.0*w);
+        u = u * u * (3.0 - 2.0 * u);
+        v = v * v * (3.0 - 2.0 * v);
+        w = w * w * (3.0 - 2.0 * w);
         let i = p.x.floor() as i32;
         let j = p.y.floor() as i32;
         let k = p.z.floor() as i32;
