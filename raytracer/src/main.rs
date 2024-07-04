@@ -136,7 +136,7 @@ fn earth() {
 }
 fn perlin_spheres() {
     let mut world: HittableList = Default::default();
-    let pertext = Arc::new(NoiseTexture::new(4.0));
+    let pertext = Arc::new(NoiseTexture::new(/*4.0*/));
     world.add(Arc::new(Sphere::new(
         Vector::new(0.0, -1000.0, 0.0),
         1000.0,
