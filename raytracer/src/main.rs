@@ -17,6 +17,7 @@ pub mod texture;
 pub mod vec3;
 
 use bvh::BvhNode;
+use quad::box_object;
 use texture::{CheckerTexture, ImageTexture};
 
 use crate::camera::Camera;
@@ -263,8 +264,18 @@ fn cornell_box() {
         Vector::new(0.0, 0.0, 555.0),
         Vector::new(555.0, 0.0, 0.0),
         Vector::new(0.0, 555.0, 0.0),
-        white,
+        white.clone(),
     )));
+    world.add(box_object(
+        Vector::new(130.0, 0.0, 65.0),
+        Vector::new(295.0, 165.0, 230.0),
+        white.clone(),
+    ));
+    world.add(box_object(
+        Vector::new(265.0, 0.0, 295.0),
+        Vector::new(430.0, 330.0, 460.0),
+        white,
+    ));
     let mut cam: Camera = Default::default();
     cam.render(world);
 }

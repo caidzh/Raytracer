@@ -1,8 +1,9 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use crate::aabb::AABB;
 use crate::hittable::HitRecord;
 use crate::hittable::Hittable;
+use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
@@ -82,4 +83,56 @@ impl Hittable for Quad {
     fn bounding_box(&self) -> AABB {
         self.bbox
     }
+}
+
+pub fn box_object(a: Vector, b: Vector, mat: Arc<dyn Material>) -> Arc<HittableList> {
+    let sides: Arc<Mutex<HittableList>> = Default::default();
+    let min = Vector::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z));
+    let max = Vector::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z));
+
+    let dx = Vector::new(max.x - min.x, 0.0, 0.0);
+    let dy = Vector::new(0.0, max.y - min.y, 0.0);
+    let dz = Vector::new(0.0, 0.0, max.z - min.z);
+
+    let mut sides_guard = sides.lock().unwrap();
+
+    sides_guard.add(Arc::new(Quad::new(
+        Vector::new(min.x, min.y, max.z),
+        dx,
+        dy,
+        mat.clone(),
+    )));
+    sides_guard.add(Arc::new(Quad::new(
+        Vector::new(max.x, min.y, max.z),
+        dz * -1.0,
+        dy,
+        mat.clone(),
+    )));
+    sides_guard.add(Arc::new(Quad::new(
+        Vector::new(max.x, min.y, min.z),
+        dx * -1.0,
+        dy,
+        mat.clone(),
+    )));
+    sides_guard.add(Arc::new(Quad::new(
+        Vector::new(min.x, min.y, min.z),
+        dz,
+        dy,
+        mat.clone(),
+    )));
+    sides_guard.add(Arc::new(Quad::new(
+        Vector::new(min.x, max.y, max.z),
+        dx,
+        dz * -1.0,
+        mat.clone(),
+    )));
+    sides_guard.add(Arc::new(Quad::new(
+        Vector::new(min.x, min.y, min.z),
+        dx,
+        dz,
+        mat.clone(),
+    )));
+
+    let cloned_sides = sides_guard.clone();
+    Arc::new(cloned_sides)
 }
