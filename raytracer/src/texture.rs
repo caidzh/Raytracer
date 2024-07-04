@@ -103,14 +103,12 @@ impl NoiseTexture {
     pub fn new(s: f64) -> Self {
         let mut a = Perlin::default();
         a.initialise();
-        Self {
-            noise: a, scale: s
-        }
+        Self { noise: a, scale: s }
     }
 }
 
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: Vector) -> Vector {
-        Vector::new(0.5, 0.5, 0.5) * (1.0+(self.scale*p.z+10.0*self.noise.turb(p,7)).sin())
+        Vector::new(0.5, 0.5, 0.5) * (1.0 + (self.scale * p.z + 10.0 * self.noise.turb(p, 7)).sin())
     }
 }
