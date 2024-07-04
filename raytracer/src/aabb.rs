@@ -1,12 +1,13 @@
 use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3::Vector;
+use std::ops::Add;
 
 #[derive(Copy, Clone)]
 pub struct AABB {
-    x: Interval,
-    y: Interval,
-    z: Interval,
+    pub x: Interval,
+    pub y: Interval,
+    pub z: Interval,
 }
 
 impl Default for AABB {
@@ -115,6 +116,17 @@ impl AABB {
             1
         } else {
             2
+        }
+    }
+}
+
+impl Add<Vector> for AABB {
+    type Output = Self;
+    fn add(self, other: Vector) -> Self::Output {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
         }
     }
 }

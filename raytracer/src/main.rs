@@ -17,6 +17,7 @@ pub mod texture;
 pub mod vec3;
 
 use bvh::BvhNode;
+use hittable::{RotateY, Translate};
 use quad::box_object;
 use texture::{CheckerTexture, ImageTexture};
 
@@ -266,16 +267,22 @@ fn cornell_box() {
         Vector::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
-    world.add(box_object(
-        Vector::new(130.0, 0.0, 65.0),
-        Vector::new(295.0, 165.0, 230.0),
+    let box1 = box_object(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(165.0, 330.0, 165.0),
         white.clone(),
-    ));
-    world.add(box_object(
-        Vector::new(265.0, 0.0, 295.0),
-        Vector::new(430.0, 330.0, 460.0),
+    );
+    let box1 = Arc::new(RotateY::new(box1, 15.0));
+    let box1 = Arc::new(Translate::new(box1, &Vector::new(265.0, 0.0, 295.0)));
+    world.add(box1);
+    let box2 = box_object(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(165.0, 165.0, 165.0),
         white,
-    ));
+    );
+    let box2 = Arc::new(RotateY::new(box2, -18.0));
+    let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
+    world.add(box2);
     let mut cam: Camera = Default::default();
     cam.render(world);
 }
