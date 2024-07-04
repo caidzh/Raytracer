@@ -208,6 +208,11 @@ fn simple_light() {
         Arc::new(Lambertian::arc_new(pertext)),
     )));
     let difflight = Arc::new(DiffuseLight::color_new(Vector::new(4.0, 4.0, 4.0)));
+    world.add(Arc::new(Sphere::new(
+        Vector::new(0.0, 7.0, 0.0),
+        2.0,
+        difflight.clone(),
+    )));
     world.add(Arc::new(Quad::new(
         Vector::new(3.0, 1.0, -2.0),
         Vector::new(2.0, 0.0, 0.0),
