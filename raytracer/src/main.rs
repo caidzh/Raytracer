@@ -222,16 +222,63 @@ fn simple_light() {
     let mut cam: Camera = Default::default();
     cam.render(world);
 }
+fn cornell_box() {
+    let mut world: HittableList = Default::default();
+    let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::color_new(Vector::new(15.0, 15.0, 15.0)));
+
+    world.add(Arc::new(Quad::new(
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        green,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        red,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(343.0, 554.0, 332.0),
+        Vector::new(-130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -105.0),
+        light,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(555.0, 555.0, 555.0),
+        Vector::new(-555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 555.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        white,
+    )));
+    let mut cam: Camera = Default::default();
+    cam.render(world);
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
-    if f < 0.001 {
+    if f < 0.0001 {
         bouncing_spheres();
         checkered_spheres();
         earth();
         perlin_spheres();
         quads();
-    } else {
         simple_light();
+    } else {
+        cornell_box();
     }
     exit(0);
 }

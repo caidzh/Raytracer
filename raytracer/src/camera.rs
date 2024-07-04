@@ -44,19 +44,19 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            aspect_ratio: 16.0 / 9.0,
-            image_width: 400,
+            aspect_ratio: 1.0,
+            image_width: 600,
             image_height: 0,
-            samples_per_pixel: 100,
+            samples_per_pixel: 200,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
             max_depth: 50,
-            vfov: 20.0,
-            lookfrom: Vector::new(26.0, 3.0, 6.0),
-            lookat: Vector::new(0.0, 2.0, 0.0),
+            vfov: 40.0,
+            lookfrom: Vector::new(278.0, 278.0, -800.0),
+            lookat: Vector::new(278.0, 278.0, 0.0),
             vup: Vector::new(0.0, 1.0, 0.0),
             u: Vector::new(0.0, 0.0, 0.0),
             v: Vector::new(0.0, 0.0, 0.0),
@@ -72,7 +72,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book2/image18.jpg");
+        let path = std::path::Path::new("output/book2/image19.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
