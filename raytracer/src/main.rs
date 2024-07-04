@@ -3,6 +3,7 @@ use std::sync::Arc;
 pub mod aabb;
 pub mod bvh;
 pub mod camera;
+pub mod constant_medium;
 pub mod hittable;
 pub mod hittable_list;
 pub mod image;
@@ -22,6 +23,7 @@ use quad::box_object;
 use texture::{CheckerTexture, ImageTexture};
 
 use crate::camera::Camera;
+use crate::constant_medium::ConstantMedium;
 use crate::hittable_list::HittableList;
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::quad::Quad;
@@ -286,6 +288,76 @@ fn cornell_box() {
     let mut cam: Camera = Default::default();
     cam.render(world);
 }
+fn cornell_smoke() {
+    let mut world: HittableList = Default::default();
+    let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::color_new(Vector::new(7.0, 7.0, 7.0)));
+
+    world.add(Arc::new(Quad::new(
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        green,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        red,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(113.0, 554.0, 127.0),
+        Vector::new(330.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 305.0),
+        light,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 555.0, 0.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 555.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        white.clone(),
+    )));
+    let box1 = box_object(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(165.0, 330.0, 165.0),
+        white.clone(),
+    );
+    let box1 = Arc::new(RotateY::new(box1, 15.0));
+    let box1 = Arc::new(Translate::new(box1, &Vector::new(265.0, 0.0, 295.0)));
+    world.add(Arc::new(ConstantMedium::color_new(
+        box1,
+        0.01,
+        Vector::new(0.0, 0.0, 0.0),
+    )));
+    let box2 = box_object(
+        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(165.0, 165.0, 165.0),
+        white,
+    );
+    let box2 = Arc::new(RotateY::new(box2, -18.0));
+    let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
+    world.add(Arc::new(ConstantMedium::color_new(
+        box2,
+        0.01,
+        Vector::new(1.0, 1.0, 1.0),
+    )));
+    let mut cam: Camera = Default::default();
+    cam.render(world);
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.0001 {
@@ -295,8 +367,9 @@ fn main() {
         perlin_spheres();
         quads();
         simple_light();
-    } else {
         cornell_box();
+    } else {
+        cornell_smoke();
     }
     exit(0);
 }
