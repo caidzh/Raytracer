@@ -21,7 +21,7 @@ use texture::{CheckerTexture, ImageTexture};
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
-use crate::material::{Dielectric, Lambertian, Material, Metal};
+use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::quad::Quad;
 use crate::rtweekend::{random_double, random_double_range};
 use crate::sphere::Sphere;
@@ -194,6 +194,29 @@ fn quads() {
     let mut cam: Camera = Default::default();
     cam.render(world);
 }
+fn simple_light() {
+    let mut world: HittableList = Default::default();
+    let pertext = Arc::new(NoiseTexture::new(4.0));
+    world.add(Arc::new(Sphere::new(
+        Vector::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Arc::new(Lambertian::arc_new(pertext.clone())),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Vector::new(0.0, 2.0, 0.0),
+        2.0,
+        Arc::new(Lambertian::arc_new(pertext)),
+    )));
+    let difflight = Arc::new(DiffuseLight::color_new(Vector::new(4.0, 4.0, 4.0)));
+    world.add(Arc::new(Quad::new(
+        Vector::new(3.0, 1.0, -2.0),
+        Vector::new(2.0, 0.0, 0.0),
+        Vector::new(0.0, 2.0, 0.0),
+        difflight,
+    )));
+    let mut cam: Camera = Default::default();
+    cam.render(world);
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.001 {
@@ -201,8 +224,9 @@ fn main() {
         checkered_spheres();
         earth();
         perlin_spheres();
-    } else {
         quads();
+    } else {
+        simple_light();
     }
     exit(0);
 }

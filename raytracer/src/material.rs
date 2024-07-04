@@ -6,6 +6,9 @@ use crate::vec3::Vector;
 use std::sync::Arc;
 
 pub trait Material: Send + Sync {
+    fn emitted(&self, _u: f64, _v: f64, _p: Vector) -> Vector {
+        Vector::new(0.0, 0.0, 0.0)
+    }
     fn scatter(
         &self,
         _r_in: &Ray,
@@ -122,5 +125,26 @@ impl Material for Dielectric {
         };
         *scattered = Ray::new(rec.p, direction, r_in.time);
         true
+    }
+}
+
+pub struct DiffuseLight {
+    tex: Arc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(t: Arc<dyn Texture>) -> Self {
+        Self { tex: t }
+    }
+    pub fn color_new(emit: Vector) -> Self {
+        Self {
+            tex: Arc::new(SolidColor::new(emit)),
+        }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn emitted(&self, u: f64, v: f64, p: Vector) -> Vector {
+        self.tex.value(u, v, p)
     }
 }

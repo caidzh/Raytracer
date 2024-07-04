@@ -38,12 +38,13 @@ pub struct Camera {
     pub focus_dist: f64,
     pub defocus_disk_u: Vector,
     pub defocus_disk_v: Vector,
+    pub background: Vector,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            aspect_ratio: 1.0,
+            aspect_ratio: 16.0 / 9.0,
             image_width: 400,
             image_height: 0,
             samples_per_pixel: 100,
@@ -53,9 +54,9 @@ impl Default for Camera {
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
             max_depth: 50,
-            vfov: 80.0,
-            lookfrom: Vector::new(0.0, 0.0, 9.0),
-            lookat: Vector::new(0.0, 0.0, 0.0),
+            vfov: 20.0,
+            lookfrom: Vector::new(26.0, 3.0, 6.0),
+            lookat: Vector::new(0.0, 2.0, 0.0),
             vup: Vector::new(0.0, 1.0, 0.0),
             u: Vector::new(0.0, 0.0, 0.0),
             v: Vector::new(0.0, 0.0, 0.0),
@@ -64,13 +65,14 @@ impl Default for Camera {
             focus_dist: 10.0,
             defocus_disk_u: Vector::new(0.0, 0.0, 0.0),
             defocus_disk_v: Vector::new(0.0, 0.0, 0.0),
+            background: Vector::new(0.0, 0.0, 0.0),
         }
     }
 }
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book2/image16.jpg");
+        let path = std::path::Path::new("output/book2/image17.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -95,7 +97,7 @@ impl Camera {
                     let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
                     for _ in 0..copy.samples_per_pixel {
                         let r: Ray = copy.get_ray(i, j);
-                        pixel_color = pixel_color + Self::ray_color(&r, copy.max_depth, &world);
+                        pixel_color = pixel_color + copy.ray_color(&r, copy.max_depth, &world);
                     }
                     pixel_color = pixel_color * copy.pixel_samples_scale;
                     let mut img = img.lock().unwrap();
@@ -176,7 +178,7 @@ impl Camera {
         let p = Vector::random_in_unit_disk();
         self.center + (self.defocus_disk_u * p.x) + (self.defocus_disk_v * p.y)
     }
-    fn ray_color(r: &Ray, depth: u32, world: &HittableList) -> Vector {
+    fn ray_color(&self, r: &Ray, depth: u32, world: &HittableList) -> Vector {
         if depth == 0 {
             return Vector::new(0.0, 0.0, 0.0);
         }
@@ -187,21 +189,23 @@ impl Camera {
                 Ray::new(Vector::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0), 0.0);
             let mut attenuation: Vector = Vector::new(0.0, 0.0, 0.0);
             let mat = rec.mat.as_ref().unwrap();
+            let color_from_emission = mat.emitted(rec.u, rec.v, rec.p);
             if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
-                let col = Self::ray_color(&scattered, depth - 1, world);
+                let col = self.ray_color(&scattered, depth - 1, world);
                 return Vector::new(
                     attenuation.x * col.x,
                     attenuation.y * col.y,
                     attenuation.z * col.z,
-                );
+                ) + color_from_emission;
             }
-            Vector::new(0.0, 0.0, 0.0)
+            color_from_emission
         } else {
-            let unit_direction: Vector = r.direction.unit();
-            let a = 0.5 * (unit_direction.y + 1.0);
-            let white: Vector = Vector::new(1.0, 1.0, 1.0);
-            let blue: Vector = Vector::new(0.5, 0.7, 1.0);
-            white * (1.0 - a) + blue * a
+            // let unit_direction: Vector = r.direction.unit();
+            // let a = 0.5 * (unit_direction.y + 1.0);
+            // let white: Vector = Vector::new(1.0, 1.0, 1.0);
+            // let blue: Vector = Vector::new(0.5, 0.7, 1.0);
+            // white * (1.0 - a) + blue * a
+            self.background
         }
     }
     fn write_color(img: &mut RgbImage, i: u32, j: u32, pixel_color: &mut Vector) {
