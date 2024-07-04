@@ -21,10 +21,12 @@ impl Default for AABB {
 
 impl AABB {
     pub fn new(a: Interval, b: Interval, c: Interval) -> Self {
-        Self { x: a, y: b, z: c }
+        let val = Self { x: a, y: b, z: c };
+        val.pad_to_minimums();
+        val
     }
     pub fn point_new(a: &Vector, b: &Vector) -> Self {
-        Self {
+        let val = Self {
             x: if a.x <= b.x {
                 Interval::new(a.x, b.x)
             } else {
@@ -40,7 +42,9 @@ impl AABB {
             } else {
                 Interval::new(b.z, a.z)
             },
-        }
+        };
+        val.pad_to_minimums();
+        val
     }
     pub fn box_new(a: &AABB, b: &AABB) -> Self {
         Self {
@@ -56,6 +60,18 @@ impl AABB {
             self.z
         } else {
             self.x
+        }
+    }
+    fn pad_to_minimums(&self) {
+        let delta = 0.0001;
+        if self.x.size() < delta {
+            self.x.expand(delta);
+        }
+        if self.y.size() < delta {
+            self.y.expand(delta);
+        }
+        if self.z.size() < delta {
+            self.z.expand(delta);
         }
     }
     pub fn hit(&self, r: &Ray, ray_t: &Interval) -> bool {

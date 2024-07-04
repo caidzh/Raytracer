@@ -9,6 +9,7 @@ pub mod image;
 pub mod interval;
 pub mod material;
 pub mod perlin;
+pub mod quad;
 pub mod ray;
 pub mod rtweekend;
 pub mod sphere;
@@ -21,6 +22,7 @@ use texture::{CheckerTexture, ImageTexture};
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
 use crate::material::{Dielectric, Lambertian, Material, Metal};
+use crate::quad::Quad;
 use crate::rtweekend::{random_double, random_double_range};
 use crate::sphere::Sphere;
 use crate::texture::NoiseTexture;
@@ -150,14 +152,57 @@ fn perlin_spheres() {
     let mut cam: Camera = Default::default();
     cam.render(world);
 }
+fn quads() {
+    let mut world: HittableList = Default::default();
+
+    let left_red = Arc::new(Lambertian::new(Vector::new(1.0, 0.2, 0.2)));
+    let back_green = Arc::new(Lambertian::new(Vector::new(0.2, 1.0, 0.2)));
+    let right_blue = Arc::new(Lambertian::new(Vector::new(0.2, 0.2, 1.0)));
+    let upper_orange = Arc::new(Lambertian::new(Vector::new(1.0, 0.5, 0.0)));
+    let lower_teal = Arc::new(Lambertian::new(Vector::new(0.2, 0.8, 0.8)));
+
+    world.add(Arc::new(Quad::new(
+        Vector::new(-3.0, -2.0, 5.0),
+        Vector::new(0.0, 0.0, -4.0),
+        Vector::new(0.0, 4.0, 0.0),
+        left_red,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(-2.0, -2.0, 0.0),
+        Vector::new(4.0, 0.0, 0.0),
+        Vector::new(0.0, 4.0, 0.0),
+        back_green,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(3.0, -2.0, 1.0),
+        Vector::new(0.0, 0.0, 4.0),
+        Vector::new(0.0, 4.0, 0.0),
+        right_blue,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(-2.0, 3.0, 1.0),
+        Vector::new(4.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 4.0),
+        upper_orange,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(-2.0, -3.0, 5.0),
+        Vector::new(4.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -4.0),
+        lower_teal,
+    )));
+    let mut cam: Camera = Default::default();
+    cam.render(world);
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.001 {
         bouncing_spheres();
         checkered_spheres();
         earth();
-    } else {
         perlin_spheres();
+    } else {
+        quads();
     }
     exit(0);
 }
