@@ -5,7 +5,7 @@ use crate::ray::Ray;
 use crate::vec3::Vector;
 use std::sync::Arc;
 
-#[derive(Clone,Default)]
+#[derive(Clone, Default)]
 pub struct HitRecord {
     pub p: Vector,
     pub normal: Vector,

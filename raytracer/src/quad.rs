@@ -44,7 +44,7 @@ impl Quad {
         self.bbox = AABB::box_new(&bbox_diagonal1, &bbox_diagonal2);
     }
     fn is_interior(a: f64, b: f64) -> Option<HitRecord> {
-        let mut val:HitRecord=Default::default();
+        let mut val: HitRecord = Default::default();
         let unit_interval = Interval::new(0.0, 1.0);
         if !unit_interval.contains(a) || !unit_interval.contains(b) {
             return None;
