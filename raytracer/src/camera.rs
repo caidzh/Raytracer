@@ -13,7 +13,7 @@ use crate::ray::Ray;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::random_double;
 use crate::rtweekend::INFINITY;
-use crate::rtweekend::PI;
+// use crate::rtweekend::PI;
 use crate::vec3::Vector;
 
 #[derive(Clone)]
@@ -77,7 +77,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book3/image4.jpg");
+        let path = std::path::Path::new("output/book3/image6.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -211,7 +211,7 @@ impl Camera {
             let color_from_emission = mat.emitted(rec.u, rec.v, rec.p);
             if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
                 let scattering_pdf = mat.scattering_pdf(r, rec.clone(), &mut scattered);
-                let pdf = 1.0 / (2.0 * PI);
+                let pdf = scattering_pdf;
                 let col = self.ray_color(&scattered, depth - 1, world);
                 return Vector::new(
                     attenuation.x * col.x * scattering_pdf / pdf,
