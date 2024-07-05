@@ -63,7 +63,7 @@ impl Material for Lambertian {
         // } else {
         //     cos_theta / PI
         // }
-        1.0/(2.0*PI)
+        1.0 / (2.0 * PI)
     }
 }
 
