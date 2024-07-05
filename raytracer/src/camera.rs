@@ -77,7 +77,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book3/image5.jpg");
+        let path = std::path::Path::new("output/book3/image6.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -209,7 +209,8 @@ impl Camera {
             let mut attenuation: Vector = Vector::new(0.0, 0.0, 0.0);
             let mat = rec.mat.as_ref().unwrap();
             let color_from_emission = mat.emitted(rec.u, rec.v, rec.p);
-            if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+            let mut pdf: f64 = Default::default();
+            if mat.scatter(r, &rec, &mut attenuation, &mut scattered, &mut pdf) {
                 let scattering_pdf = mat.scattering_pdf(r, rec.clone(), &mut scattered);
                 let pdf = scattering_pdf;
                 let col = self.ray_color(&scattered, depth - 1, world);
