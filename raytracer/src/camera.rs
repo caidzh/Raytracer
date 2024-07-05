@@ -13,6 +13,7 @@ use crate::ray::Ray;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::random_double;
 use crate::rtweekend::INFINITY;
+use crate::rtweekend::PI;
 use crate::vec3::Vector;
 
 #[derive(Clone)]
@@ -49,7 +50,7 @@ impl Default for Camera {
             aspect_ratio: 1.0,
             image_width: 600,
             image_height: 0,
-            samples_per_pixel: 64,
+            samples_per_pixel: 600,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -76,7 +77,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book3/image2.jpg");
+        let path = std::path::Path::new("output/book3/image6.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -209,11 +210,13 @@ impl Camera {
             let mat = rec.mat.as_ref().unwrap();
             let color_from_emission = mat.emitted(rec.u, rec.v, rec.p);
             if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+                let scattering_pdf = mat.scattering_pdf(r, rec.clone(), &mut scattered);
+                let pdf = 1.0 / (2.0 * PI);
                 let col = self.ray_color(&scattered, depth - 1, world);
                 return Vector::new(
-                    attenuation.x * col.x,
-                    attenuation.y * col.y,
-                    attenuation.z * col.z,
+                    attenuation.x * col.x * scattering_pdf / pdf,
+                    attenuation.y * col.y * scattering_pdf / pdf,
+                    attenuation.z * col.z * scattering_pdf / pdf,
                 ) + color_from_emission;
             }
             color_from_emission

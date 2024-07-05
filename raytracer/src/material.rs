@@ -1,6 +1,7 @@
 use crate::hittable::HitRecord;
 use crate::ray::Ray;
 use crate::rtweekend::random_double;
+use crate::rtweekend::PI;
 use crate::texture::{SolidColor, Texture};
 use crate::vec3::Vector;
 use std::sync::Arc;
@@ -17,6 +18,9 @@ pub trait Material: Send + Sync {
         _scattered: &mut Ray,
     ) -> bool {
         false
+    }
+    fn scattering_pdf(&self, _r_in: &Ray, _rec: HitRecord, _scattered: &mut Ray) -> f64 {
+        0.0
     }
 }
 
@@ -43,6 +47,7 @@ impl Material for Lambertian {
         attenuation: &mut Vector,
         scattered: &mut Ray,
     ) -> bool {
+        // let mut scatter_direction: Vector = Vector::random_on_hemisphere(&rec.normal);
         let mut scatter_direction: Vector = rec.normal + Vector::random_unit_vector();
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal
@@ -50,6 +55,15 @@ impl Material for Lambertian {
         *scattered = Ray::new(rec.p, scatter_direction, r_in.time);
         *attenuation = self.tex.value(rec.u, rec.v, rec.p);
         true
+    }
+    fn scattering_pdf(&self, _r_in: &Ray, rec: HitRecord, scattered: &mut Ray) -> f64 {
+        let cos_theta = rec.normal.dot(&scattered.direction.unit());
+        if cos_theta < 0.0 {
+            0.0
+        } else {
+            cos_theta / PI
+        }
+        // 1.0/(2.0*PI)
     }
 }
 

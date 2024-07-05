@@ -1,4 +1,4 @@
-use crate::rtweekend::{random_double, random_double_range};
+use crate::rtweekend::{random_double, random_double_range, PI};
 use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Default)]
@@ -102,6 +102,17 @@ impl Vector {
                 return p;
             }
         }
+    }
+    pub fn random_cosine_direction() -> Vector {
+        let r1 = random_double();
+        let r2 = random_double();
+
+        let phi = 2.0 * PI * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+        let z = (1.0 - r2).sqrt();
+
+        Vector::new(x, y, z)
     }
 }
 impl Add for Vector {
