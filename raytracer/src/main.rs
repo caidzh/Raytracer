@@ -235,37 +235,37 @@ fn cornell_box() {
 
     world.add(Arc::new(Quad::new(
         Vector::new(555.0, 0.0, 0.0),
-        Vector::new(0.0, 555.0, 0.0),
         Vector::new(0.0, 0.0, 555.0),
+        Vector::new(0.0, 555.0, 0.0),
         green,
     )));
     world.add(Arc::new(Quad::new(
-        Vector::new(0.0, 0.0, 0.0),
-        Vector::new(0.0, 555.0, 0.0),
         Vector::new(0.0, 0.0, 555.0),
+        Vector::new(0.0, 0.0, -555.0),
+        Vector::new(0.0, 555.0, 0.0),
         red,
     )));
     world.add(Arc::new(Quad::new(
-        Vector::new(343.0, 554.0, 332.0),
-        Vector::new(-130.0, 0.0, 0.0),
-        Vector::new(0.0, 0.0, -105.0),
+        Vector::new(213.0, 554.0, 227.0),
+        Vector::new(130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 105.0),
         light,
     )));
     world.add(Arc::new(Quad::new(
-        Vector::new(0.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
         Vector::new(555.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, 555.0),
         white.clone(),
     )));
     world.add(Arc::new(Quad::new(
-        Vector::new(555.0, 555.0, 555.0),
-        Vector::new(-555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        Vector::new(555.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, -555.0),
         white.clone(),
     )));
     world.add(Arc::new(Quad::new(
-        Vector::new(0.0, 0.0, 555.0),
-        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(555.0, 0.0, 555.0),
+        Vector::new(-555.0, 0.0, 0.0),
         Vector::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
@@ -478,10 +478,10 @@ fn main() {
         perlin_spheres();
         quads();
         simple_light();
-        cornell_box();
         cornell_smoke();
-    } else {
         final_scene();
+    } else {
+        cornell_box();
     }
     exit(0);
 }

@@ -39,15 +39,17 @@ pub struct Camera {
     pub defocus_disk_u: Vector,
     pub defocus_disk_v: Vector,
     pub background: Vector,
+    pub sqrt_spp: i32,
+    pub recip_sqrt_spp: f64,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
             aspect_ratio: 1.0,
-            image_width: 800,
+            image_width: 600,
             image_height: 0,
-            samples_per_pixel: 5000,
+            samples_per_pixel: 64,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -55,7 +57,7 @@ impl Default for Camera {
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
             max_depth: 40,
             vfov: 40.0,
-            lookfrom: Vector::new(478.0, 278.0, -600.0),
+            lookfrom: Vector::new(278.0, 278.0, -800.0),
             lookat: Vector::new(278.0, 278.0, 0.0),
             vup: Vector::new(0.0, 1.0, 0.0),
             u: Vector::new(0.0, 0.0, 0.0),
@@ -66,13 +68,15 @@ impl Default for Camera {
             defocus_disk_u: Vector::new(0.0, 0.0, 0.0),
             defocus_disk_v: Vector::new(0.0, 0.0, 0.0),
             background: Vector::new(0.0, 0.0, 0.0),
+            sqrt_spp: 0,
+            recip_sqrt_spp: 0.0,
         }
     }
 }
 
 impl Camera {
     pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book2/image23.jpg");
+        let path = std::path::Path::new("output/book3/image2.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -95,9 +99,15 @@ impl Camera {
             let rend_line = thread::spawn(move || {
                 for i in 0..copy.image_width {
                     let mut pixel_color: Vector = Vector::new(0.0, 0.0, 0.0);
-                    for _ in 0..copy.samples_per_pixel {
-                        let r: Ray = copy.get_ray(i, j);
-                        pixel_color = pixel_color + copy.ray_color(&r, copy.max_depth, &world);
+                    // for _ in 0..copy.samples_per_pixel {
+                    //     let r: Ray = copy.get_ray(i, j);
+                    //     pixel_color = pixel_color + copy.ray_color(&r, copy.max_depth, &world);
+                    // }
+                    for s_j in 0..copy.sqrt_spp {
+                        for s_i in 0..copy.sqrt_spp {
+                            let r = copy.get_ray(i, j, s_i, s_j);
+                            pixel_color = pixel_color + copy.ray_color(&r, copy.max_depth, &world)
+                        }
                     }
                     pixel_color = pixel_color * copy.pixel_samples_scale;
                     let mut img = img.lock().unwrap();
@@ -135,6 +145,9 @@ impl Camera {
         } else {
             self.image_height
         };
+        self.sqrt_spp = (self.samples_per_pixel as f64).sqrt() as i32;
+        self.pixel_samples_scale = 1.0 / ((self.sqrt_spp * self.sqrt_spp) as f64);
+        self.recip_sqrt_spp = 1.0 / (self.sqrt_spp as f64);
         self.pixel_samples_scale = 1.0 / (self.samples_per_pixel as f64);
         self.center = self.lookfrom;
         // let focal_length: f64 = (self.lookfrom - self.lookat).length();
@@ -157,11 +170,11 @@ impl Camera {
         self.defocus_disk_u = self.u * defocus_radius;
         self.defocus_disk_v = self.v * defocus_radius;
     }
-    fn sample_square() -> Vector {
-        Vector::new(random_double() - 0.5, random_double() - 0.5, 0.0)
-    }
-    fn get_ray(&self, i: u32, j: u32) -> Ray {
-        let offset: Vector = Self::sample_square();
+    // fn sample_square() -> Vector {
+    //     Vector::new(random_double() - 0.5, random_double() - 0.5, 0.0)
+    // }
+    fn get_ray(&self, i: u32, j: u32, s_i: i32, s_j: i32) -> Ray {
+        let offset: Vector = self.sample_square_stratified(s_i, s_j);
         let pixel_sample: Vector = self.pixel00_loc
             + self.pixel_delta_u * (i as f64 + offset.x)
             + self.pixel_delta_v * (j as f64 + offset.y);
@@ -173,6 +186,11 @@ impl Camera {
         let ray_direction = pixel_sample - ray_origin;
         let ray_time = random_double();
         Ray::new(ray_origin, ray_direction, ray_time)
+    }
+    fn sample_square_stratified(&self, s_i: i32, s_j: i32) -> Vector {
+        let px = ((s_i as f64 + random_double()) * self.recip_sqrt_spp) - 0.5;
+        let py = ((s_j as f64 + random_double()) * self.recip_sqrt_spp) - 0.5;
+        Vector::new(px, py, 0.0)
     }
     fn defocus_disk_sample(&self) -> Vector {
         let p = Vector::random_in_unit_disk();
