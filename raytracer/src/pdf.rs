@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::hittable::Hittable;
 use crate::onb::Onb;
-use crate::rtweekend::PI;
+use crate::rtweekend::{random_double, PI};
 use crate::vec3::Vector;
 
 pub trait Pdf: Send + Sync {
@@ -29,6 +29,11 @@ pub struct CosinePdf {
 impl CosinePdf {
     pub fn init(&mut self, w: Vector) {
         self.uvw.build_from_w(w);
+    }
+    pub fn new(w: Vector) -> Self {
+        let mut val: Self = Default::default();
+        val.uvw.build_from_w(w);
+        val
     }
 }
 
@@ -63,5 +68,28 @@ impl Pdf for HittablePdf {
 
     fn generate(&self) -> Vector {
         self.objects.random(self.origin)
+    }
+}
+
+pub struct MixturePdf {
+    pub p: [Arc<dyn Pdf>; 2],
+}
+
+impl MixturePdf {
+    pub fn new(p0: Arc<dyn Pdf>, p1: Arc<dyn Pdf>) -> Self {
+        Self { p: [p0, p1] }
+    }
+}
+
+impl Pdf for MixturePdf {
+    fn value(&self, direction: Vector) -> f64 {
+        self.p[0].value(direction) * 0.5 + self.p[1].value(direction) * 0.5
+    }
+    fn generate(&self) -> Vector {
+        if random_double() < 0.5 {
+            return self.p[0].generate();
+        } else {
+            self.p[1].generate()
+        }
     }
 }

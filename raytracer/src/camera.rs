@@ -10,7 +10,7 @@ use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 // use crate::pdf::CosinePdf;
-use crate::pdf::{HittablePdf, Pdf};
+use crate::pdf::{CosinePdf, HittablePdf, MixturePdf, Pdf};
 use crate::ray::Ray;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::random_double;
@@ -53,7 +53,7 @@ impl Default for Camera {
             aspect_ratio: 1.0,
             image_width: 600,
             image_height: 0,
-            samples_per_pixel: 10,
+            samples_per_pixel: 1000,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -80,7 +80,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList, lights: Arc<dyn Hittable>) {
-        let path = std::path::Path::new("output/book3/image10.jpg");
+        let path = std::path::Path::new("output/book3/image11.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -268,9 +268,11 @@ impl Camera {
                 //     attenuation.y * col.y * scattering_pdf / pdf,
                 //     attenuation.z * col.z * scattering_pdf / pdf,
                 // ) + color_from_emission;
-                let light_pdf: HittablePdf = HittablePdf::new(lights.clone(), rec.p);
-                scattered = Ray::new(rec.p, light_pdf.generate(), r.time);
-                pdf = light_pdf.value(scattered.direction);
+                let p0 = Arc::new(HittablePdf::new(lights.clone(), rec.p));
+                let p1 = Arc::new(CosinePdf::new(rec.normal));
+                let mixed_pdf = MixturePdf::new(p0, p1);
+                scattered = Ray::new(rec.p, mixed_pdf.generate(), r.time);
+                pdf = mixed_pdf.value(scattered.direction);
                 let scattering_pdf = mat.scattering_pdf(r, rec.clone(), &mut scattered);
                 let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
                 return Vector::new(
