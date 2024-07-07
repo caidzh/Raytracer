@@ -1,5 +1,7 @@
 use crate::hittable::HitRecord;
-use crate::onb::Onb;
+use crate::pdf::CosinePdf;
+use crate::pdf::Pdf;
+use crate::pdf::SpherePdf;
 use crate::ray::Ray;
 use crate::rtweekend::random_double;
 use crate::rtweekend::PI;
@@ -11,14 +13,7 @@ pub trait Material: Send + Sync {
     fn emitted(&self, _r_in: &Ray, _rec: HitRecord, _u: f64, _v: f64, _p: Vector) -> Vector {
         Vector::new(0.0, 0.0, 0.0)
     }
-    fn scatter(
-        &self,
-        _r_in: &Ray,
-        _rec: &HitRecord,
-        _attenuation: &mut Vector,
-        _scattered: &mut Ray,
-        _pdf: &mut f64,
-    ) -> bool {
+    fn scatter(&self, _r_in: &Ray, _rec: &HitRecord, _srec: &mut ScatterRecord) -> bool {
         false
     }
     fn scattering_pdf(&self, _r_in: &Ray, _rec: HitRecord, _scattered: &mut Ray) -> f64 {
@@ -42,14 +37,7 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vector,
-        scattered: &mut Ray,
-        pdf: &mut f64,
-    ) -> bool {
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
         // let mut scatter_direction: Vector = Vector::random_on_hemisphere(&rec.normal);
         // let mut scatter_direction: Vector = rec.normal + Vector::random_unit_vector();
 
@@ -58,12 +46,17 @@ impl Material for Lambertian {
         // }
         // *scattered = Ray::new(rec.p, scatter_direction, r_in.time);
         // *attenuation = self.tex.value(rec.u, rec.v, rec.p);
-        let mut uvw: Onb = Default::default();
-        uvw.build_from_w(rec.normal);
-        let scatter_direction = uvw.vec_local(Vector::random_cosine_direction());
-        *scattered = Ray::new(rec.p, scatter_direction.unit(), r_in.time);
-        *attenuation = self.tex.value(rec.u, rec.v, rec.p);
-        *pdf = uvw.axis[2].dot(&scattered.direction) / PI;
+
+        // let mut uvw: Onb = Default::default();
+        // uvw.build_from_w(rec.normal);
+        // let scatter_direction = uvw.vec_local(Vector::random_cosine_direction());
+        // *scattered = Ray::new(rec.p, scatter_direction.unit(), r_in.time);
+        // *attenuation = self.tex.value(rec.u, rec.v, rec.p);
+        // *pdf = uvw.axis[2].dot(&scattered.direction) / PI;
+
+        srec.attenuation = self.tex.value(rec.u, rec.v, rec.p);
+        srec.pdf_ptr = Some(Arc::new(CosinePdf::new(rec.normal)));
+        srec.skip_pdf = false;
         true
     }
     fn scattering_pdf(&self, _r_in: &Ray, _rec: HitRecord, _scattered: &mut Ray) -> f64 {
@@ -92,19 +85,14 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vector,
-        scattered: &mut Ray,
-        _pdf: &mut f64,
-    ) -> bool {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
         let mut reflected: Vector = Vector::reflect(&r_in.direction.unit(), &rec.normal);
         reflected = reflected.unit() + (Vector::random_unit_vector() * self.fuzz);
-        *scattered = Ray::new(rec.p, reflected, r_in.time);
-        *attenuation = self.albedo;
-        scattered.direction.dot(&rec.normal) > 0.0
+        srec.attenuation = self.albedo;
+        srec.pdf_ptr = None;
+        srec.skip_pdf = true;
+        srec.skip_pdf_ray = Ray::new(rec.p, reflected, r_in.time);
+        true
     }
 }
 
@@ -126,15 +114,10 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vector,
-        scattered: &mut Ray,
-        _pdf: &mut f64,
-    ) -> bool {
-        *attenuation = Vector::new(1.0, 1.0, 1.0);
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
+        srec.attenuation = Vector::new(1.0, 1.0, 1.0);
+        srec.pdf_ptr = None;
+        srec.skip_pdf = true;
         let ri = if rec.front_face {
             1.0 / self.refraction_index
         } else {
@@ -149,7 +132,7 @@ impl Material for Dielectric {
         } else {
             Vector::refract(&unit_direction, &rec.normal, ri)
         };
-        *scattered = Ray::new(rec.p, direction, r_in.time);
+        srec.skip_pdf_ray = Ray::new(rec.p, direction, r_in.time);
         true
     }
 }
@@ -194,16 +177,19 @@ impl Isotropic {
 }
 
 impl Material for Isotropic {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Vector,
-        scattered: &mut Ray,
-        _pdf: &mut f64,
-    ) -> bool {
-        *scattered = Ray::new(rec.p, Vector::random_unit_vector(), r_in.time);
-        *attenuation = self.tex.value(rec.u, rec.v, rec.p);
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
+        // *scattered = Ray::new(rec.p, Vector::random_unit_vector(), r_in.time);
+        srec.attenuation = self.tex.value(rec.u, rec.v, rec.p);
+        srec.pdf_ptr = Some(Arc::new(SpherePdf {}));
+        srec.skip_pdf = false;
         true
     }
+}
+
+#[derive(Default)]
+pub struct ScatterRecord {
+    pub attenuation: Vector,
+    pub pdf_ptr: Option<Arc<dyn Pdf>>,
+    pub skip_pdf: bool,
+    pub skip_pdf_ray: Ray,
 }

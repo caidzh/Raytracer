@@ -277,10 +277,11 @@ fn cornell_box() {
         Vector::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
+    let aluminum = Arc::new(Metal::new(Vector::new(0.8, 0.85, 0.88), 0.0));
     let box1 = box_object(
         Vector::new(0.0, 0.0, 0.0),
         Vector::new(165.0, 330.0, 165.0),
-        white.clone(),
+        aluminum,
     );
     let box1 = Arc::new(RotateY::new(box1, 15.0));
     let box1 = Arc::new(Translate::new(box1, &Vector::new(265.0, 0.0, 295.0)));
