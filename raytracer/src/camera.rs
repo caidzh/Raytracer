@@ -81,7 +81,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList, lights: Arc<dyn Hittable>) {
-        let path = std::path::Path::new("output/book3/image14.jpg");
+        let path = std::path::Path::new("output/book3/image15.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -295,6 +295,15 @@ impl Camera {
     fn write_color(img: &mut RgbImage, i: u32, j: u32, pixel_color: &mut Vector) {
         let pixel = img.get_pixel_mut(i, j);
         let intensity: Interval = Interval::new(0.000, 0.999);
+        if pixel_color.x.is_nan() {
+            pixel_color.x = 0.0;
+        }
+        if pixel_color.y.is_nan() {
+            pixel_color.y = 0.0;
+        }
+        if pixel_color.z.is_nan() {
+            pixel_color.z = 0.0;
+        }
         pixel_color.x = Self::linear_to_gamma(pixel_color.x);
         pixel_color.y = Self::linear_to_gamma(pixel_color.y);
         pixel_color.z = Self::linear_to_gamma(pixel_color.z);
