@@ -236,6 +236,7 @@ fn simple_light() {
 }
 fn cornell_box() {
     let mut world: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
     let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
     let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
@@ -300,14 +301,19 @@ fn cornell_box() {
     // let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
     // world.add(box2);
     let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(15.0, 15.0, 15.0)));
-    let lights = Arc::new(Quad::new(
+    lights.add(Arc::new(Quad::new(
         Vector::new(343.0, 554.0, 332.0),
         Vector::new(-130.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, -105.0),
+        m.clone(),
+    )));
+    lights.add(Arc::new(Sphere::new(
+        Vector::new(190.0, 90.0, 190.0),
+        90.0,
         m,
-    ));
+    )));
     let mut cam: Camera = Default::default();
-    cam.render(world, lights);
+    cam.render(world, Arc::new(lights));
 }
 fn cornell_smoke() {
     let mut world: HittableList = Default::default();
