@@ -8,7 +8,7 @@ use crate::vec3::Vector;
 use std::sync::Arc;
 
 pub trait Material: Send + Sync {
-    fn emitted(&self, _u: f64, _v: f64, _p: Vector) -> Vector {
+    fn emitted(&self, _r_in: &Ray, _rec: HitRecord, _u: f64, _v: f64, _p: Vector) -> Vector {
         Vector::new(0.0, 0.0, 0.0)
     }
     fn scatter(
@@ -170,7 +170,10 @@ impl DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn emitted(&self, u: f64, v: f64, p: Vector) -> Vector {
+    fn emitted(&self, _r_in: &Ray, rec: HitRecord, u: f64, v: f64, p: Vector) -> Vector {
+        if !rec.front_face {
+            return Vector::new(0.0, 0.0, 0.0);
+        }
         self.tex.value(u, v, p)
     }
 }
