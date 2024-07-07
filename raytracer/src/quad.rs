@@ -7,6 +7,8 @@ use crate::hittable_list::HittableList;
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::rtweekend::random_double;
+use crate::rtweekend::INFINITY;
 use crate::vec3::Vector;
 
 pub struct Quad {
@@ -18,6 +20,7 @@ pub struct Quad {
     mat: Arc<dyn Material>,
     bbox: AABB,
     d: f64,
+    area: f64,
 }
 
 impl Quad {
@@ -31,11 +34,13 @@ impl Quad {
             mat: d,
             bbox: Default::default(),
             d: 0.0,
+            area: 0.0,
         };
         let n = b.cross(&c);
         val.normal = n.unit();
         val.d = val.normal.dot(&a);
         val.w = n / n.length_square();
+        val.area = n.length();
         val.set_bounding_box();
         val
     }
@@ -82,6 +87,22 @@ impl Hittable for Quad {
     }
     fn bounding_box(&self) -> AABB {
         self.bbox
+    }
+    fn pdf_value(&self, origin: Vector, direction: Vector) -> f64 {
+        if let Some(rec) = self.hit(
+            &Ray::new(origin, direction, 0.0),
+            &Interval::new(0.001, INFINITY),
+        ) {
+            let distance_squared = rec.t * rec.t * direction.length_square();
+            let cosine = (direction.dot(&rec.normal) / direction.length()).abs();
+            distance_squared / (cosine * self.area)
+        } else {
+            0.0
+        }
+    }
+    fn random(&self, origin: Vector) -> Vector {
+        let p = self.q + self.u * random_double() + self.v * random_double();
+        p - origin
     }
 }
 

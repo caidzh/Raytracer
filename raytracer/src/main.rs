@@ -36,6 +36,7 @@ use crate::vec3::Vector;
 
 fn bouncing_spheres() {
     let mut world: HittableList = Default::default();
+    let lights: HittableList = Default::default();
     let checker = Arc::new(CheckerTexture::color_new(
         0.32,
         Vector::new(0.2, 0.3, 0.1),
@@ -106,11 +107,12 @@ fn bouncing_spheres() {
 
     let mut cam: Camera = Default::default();
 
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 
 fn checkered_spheres() {
     let mut world: HittableList = Default::default();
+    let lights: HittableList = Default::default();
     let checker = Arc::new(CheckerTexture::color_new(
         0.32,
         Vector::new(0.2, 0.3, 0.1),
@@ -129,7 +131,7 @@ fn checkered_spheres() {
 
     let mut cam: Camera = Camera::default();
 
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 
 fn earth() {
@@ -139,11 +141,13 @@ fn earth() {
 
     let mut cam: Camera = Default::default();
     let mut world = HittableList::default();
+    let lights: HittableList = Default::default();
     world.initialise(globe);
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 fn perlin_spheres() {
     let mut world: HittableList = Default::default();
+    let lights: HittableList = Default::default();
     let pertext = Arc::new(NoiseTexture::new(4.0));
     world.add(Arc::new(Sphere::new(
         Vector::new(0.0, -1000.0, 0.0),
@@ -156,10 +160,11 @@ fn perlin_spheres() {
         Arc::new(Lambertian::arc_new(pertext)),
     )));
     let mut cam: Camera = Default::default();
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 fn quads() {
     let mut world: HittableList = Default::default();
+    let lights: HittableList = Default::default();
 
     let left_red = Arc::new(Lambertian::new(Vector::new(1.0, 0.2, 0.2)));
     let back_green = Arc::new(Lambertian::new(Vector::new(0.2, 1.0, 0.2)));
@@ -198,10 +203,11 @@ fn quads() {
         lower_teal,
     )));
     let mut cam: Camera = Default::default();
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 fn simple_light() {
     let mut world: HittableList = Default::default();
+    let lights: HittableList = Default::default();
     let pertext = Arc::new(NoiseTexture::new(4.0));
     world.add(Arc::new(Sphere::new(
         Vector::new(0.0, -1000.0, 0.0),
@@ -226,7 +232,7 @@ fn simple_light() {
         difflight,
     )));
     let mut cam: Camera = Default::default();
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 fn cornell_box() {
     let mut world: HittableList = Default::default();
@@ -287,11 +293,19 @@ fn cornell_box() {
     let box2 = Arc::new(RotateY::new(box2, -18.0));
     let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
     world.add(box2);
+    let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(15.0, 15.0, 15.0)));
+    let lights = Arc::new(Quad::new(
+        Vector::new(343.0, 554.0, 332.0),
+        Vector::new(-130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -105.0),
+        m,
+    ));
     let mut cam: Camera = Default::default();
-    cam.render(world);
+    cam.render(world, lights);
 }
 fn cornell_smoke() {
     let mut world: HittableList = Default::default();
+    let lights: HittableList = Default::default();
     let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
     let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
@@ -358,10 +372,11 @@ fn cornell_smoke() {
         Vector::new(1.0, 1.0, 1.0),
     )));
     let mut cam: Camera = Default::default();
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 fn final_scene() {
     let mut boxes1: HittableList = Default::default();
+    let lights: HittableList = Default::default();
     let ground = Arc::new(Lambertian::new(Vector::new(0.48, 0.83, 0.53)));
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
@@ -469,7 +484,7 @@ fn final_scene() {
     )));
 
     let mut cam: Camera = Default::default();
-    cam.render(world);
+    cam.render(world, Arc::new(lights));
 }
 fn main() {
     let f = random_double_range(0.0, 1.0);

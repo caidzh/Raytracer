@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+use crate::hittable::Hittable;
 use crate::onb::Onb;
 use crate::rtweekend::PI;
 use crate::vec3::Vector;
@@ -36,5 +39,29 @@ impl Pdf for CosinePdf {
     }
     fn generate(&self) -> Vector {
         self.uvw.vec_local(Vector::random_cosine_direction())
+    }
+}
+
+pub struct HittablePdf {
+    pub objects: Arc<dyn Hittable>,
+    pub origin: Vector,
+}
+
+impl HittablePdf {
+    pub fn new(o: Arc<dyn Hittable>, v: Vector) -> Self {
+        Self {
+            objects: o,
+            origin: v,
+        }
+    }
+}
+
+impl Pdf for HittablePdf {
+    fn value(&self, direction: Vector) -> f64 {
+        self.objects.pdf_value(self.origin, direction)
+    }
+
+    fn generate(&self) -> Vector {
+        self.objects.random(self.origin)
     }
 }

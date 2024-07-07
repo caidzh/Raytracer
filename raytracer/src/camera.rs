@@ -9,7 +9,8 @@ use std::thread;
 use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::interval::Interval;
-use crate::pdf::{CosinePdf, Pdf};
+// use crate::pdf::CosinePdf;
+use crate::pdf::{HittablePdf, Pdf};
 use crate::ray::Ray;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::random_double;
@@ -52,7 +53,7 @@ impl Default for Camera {
             aspect_ratio: 1.0,
             image_width: 600,
             image_height: 0,
-            samples_per_pixel: 500,
+            samples_per_pixel: 10,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -78,8 +79,8 @@ impl Default for Camera {
 }
 
 impl Camera {
-    pub fn render(&mut self, world: HittableList) {
-        let path = std::path::Path::new("output/book3/image9.jpg");
+    pub fn render(&mut self, world: HittableList, lights: Arc<dyn Hittable>) {
+        let path = std::path::Path::new("output/book3/image10.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -98,6 +99,7 @@ impl Camera {
             let img = Arc::clone(&img);
             let progress = Arc::clone(&progress);
             let world = world.clone();
+            let lights = lights.clone();
             let copy = self.clone();
             let rend_line = thread::spawn(move || {
                 for i in 0..copy.image_width {
@@ -109,7 +111,8 @@ impl Camera {
                     for s_j in 0..copy.sqrt_spp {
                         for s_i in 0..copy.sqrt_spp {
                             let r = copy.get_ray(i, j, s_i, s_j);
-                            pixel_color = pixel_color + copy.ray_color(&r, copy.max_depth, &world)
+                            pixel_color = pixel_color
+                                + copy.ray_color(&r, copy.max_depth, &world, lights.clone())
                         }
                     }
                     pixel_color = pixel_color * copy.pixel_samples_scale;
@@ -199,7 +202,13 @@ impl Camera {
         let p = Vector::random_in_unit_disk();
         self.center + (self.defocus_disk_u * p.x) + (self.defocus_disk_v * p.y)
     }
-    fn ray_color(&self, r: &Ray, depth: u32, world: &HittableList) -> Vector {
+    fn ray_color(
+        &self,
+        r: &Ray,
+        depth: u32,
+        world: &HittableList,
+        lights: Arc<dyn Hittable>,
+    ) -> Vector {
         if depth == 0 {
             return Vector::new(0.0, 0.0, 0.0);
         }
@@ -248,16 +257,26 @@ impl Camera {
                 //     attenuation.z * col.z * scattering_pdf / pdf,
                 // ) + color_from_emission;
 
-                let mut surface_pdf: CosinePdf = Default::default();
-                surface_pdf.init(rec.normal);
-                scattered = Ray::new(rec.p, surface_pdf.generate(), r.time);
-                pdf = surface_pdf.value(scattered.direction);
+                // let mut surface_pdf: CosinePdf = Default::default();
+                // surface_pdf.init(rec.normal);
+                // scattered = Ray::new(rec.p, surface_pdf.generate(), r.time);
+                // pdf = surface_pdf.value(scattered.direction);
+                // let scattering_pdf = mat.scattering_pdf(r, rec.clone(), &mut scattered);
+                // let col = self.ray_color(&scattered, depth - 1, world);
+                // return Vector::new(
+                //     attenuation.x * col.x * scattering_pdf / pdf,
+                //     attenuation.y * col.y * scattering_pdf / pdf,
+                //     attenuation.z * col.z * scattering_pdf / pdf,
+                // ) + color_from_emission;
+                let light_pdf: HittablePdf = HittablePdf::new(lights.clone(), rec.p);
+                scattered = Ray::new(rec.p, light_pdf.generate(), r.time);
+                pdf = light_pdf.value(scattered.direction);
                 let scattering_pdf = mat.scattering_pdf(r, rec.clone(), &mut scattered);
-                let col = self.ray_color(&scattered, depth - 1, world);
+                let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
                 return Vector::new(
-                    attenuation.x * col.x * scattering_pdf / pdf,
-                    attenuation.y * col.y * scattering_pdf / pdf,
-                    attenuation.z * col.z * scattering_pdf / pdf,
+                    attenuation.x * sample_color.x * scattering_pdf / pdf,
+                    attenuation.y * sample_color.y * scattering_pdf / pdf,
+                    attenuation.z * sample_color.z * scattering_pdf / pdf,
                 ) + color_from_emission;
             }
             color_from_emission
