@@ -87,7 +87,7 @@ impl Pdf for MixturePdf {
     }
     fn generate(&self) -> Vector {
         if random_double() < 0.5 {
-            return self.p[0].generate();
+            self.p[0].generate()
         } else {
             self.p[1].generate()
         }
