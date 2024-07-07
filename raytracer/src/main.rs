@@ -277,23 +277,28 @@ fn cornell_box() {
         Vector::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
-    let aluminum = Arc::new(Metal::new(Vector::new(0.8, 0.85, 0.88), 0.0));
     let box1 = box_object(
         Vector::new(0.0, 0.0, 0.0),
         Vector::new(165.0, 330.0, 165.0),
-        aluminum,
+        white,
     );
     let box1 = Arc::new(RotateY::new(box1, 15.0));
     let box1 = Arc::new(Translate::new(box1, &Vector::new(265.0, 0.0, 295.0)));
     world.add(box1);
-    let box2 = box_object(
-        Vector::new(0.0, 0.0, 0.0),
-        Vector::new(165.0, 165.0, 165.0),
-        white,
-    );
-    let box2 = Arc::new(RotateY::new(box2, -18.0));
-    let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
-    world.add(box2);
+    let glass = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(Sphere::new(
+        Vector::new(190.0, 90.0, 190.0),
+        90.0,
+        glass,
+    )));
+    // let box2 = box_object(
+    //     Vector::new(0.0, 0.0, 0.0),
+    //     Vector::new(165.0, 165.0, 165.0),
+    //     white,
+    // );
+    // let box2 = Arc::new(RotateY::new(box2, -18.0));
+    // let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
+    // world.add(box2);
     let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(15.0, 15.0, 15.0)));
     let lights = Arc::new(Quad::new(
         Vector::new(343.0, 554.0, 332.0),
