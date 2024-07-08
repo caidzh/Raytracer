@@ -57,7 +57,7 @@ impl Hittable for HittableList {
         let weight = 1.0 / (self.size() as f64);
         let mut sum = 0.0;
         for object in self.objects.iter() {
-            sum += weight * object.pdf_value(origin, direction)
+            sum += weight * object.pdf_value(origin, direction);
         }
         sum
     }

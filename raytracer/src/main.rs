@@ -36,7 +36,7 @@ use crate::vec3::Vector;
 
 fn bouncing_spheres() {
     let mut world: HittableList = Default::default();
-    let lights: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
     let checker = Arc::new(CheckerTexture::color_new(
         0.32,
         Vector::new(0.2, 0.3, 0.1),
@@ -92,7 +92,7 @@ fn bouncing_spheres() {
     world.add(Arc::new(Sphere::new(
         Vector::new(-4.0, 1.0, 0.0),
         1.0,
-        material2,
+        material2.clone(),
     )));
 
     let material3 = Arc::new(Metal::new(Vector::new(0.7, 0.6, 0.5), 0.0));
@@ -104,7 +104,11 @@ fn bouncing_spheres() {
 
     let world_node = BvhNode::initialise(&mut world);
     world.initialise(Arc::new(world_node));
-
+    lights.add(Arc::new(Sphere::new(
+        Vector::new(-4.0, 1.0, 0.0),
+        1.0,
+        material2,
+    )));
     let mut cam: Camera = Default::default();
 
     cam.render(world, Arc::new(lights));
@@ -317,7 +321,7 @@ fn cornell_box() {
 }
 fn cornell_smoke() {
     let mut world: HittableList = Default::default();
-    let lights: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
     let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
     let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
@@ -335,7 +339,7 @@ fn cornell_smoke() {
         Vector::new(0.0, 0.0, 555.0),
         red,
     )));
-    world.add(Arc::new(Quad::new(
+    lights.add(Arc::new(Quad::new(
         Vector::new(113.0, 554.0, 127.0),
         Vector::new(330.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, 305.0),
@@ -388,7 +392,7 @@ fn cornell_smoke() {
 }
 fn final_scene() {
     let mut boxes1: HittableList = Default::default();
-    let lights: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
     let ground = Arc::new(Lambertian::new(Vector::new(0.48, 0.83, 0.53)));
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
@@ -412,6 +416,13 @@ fn final_scene() {
     world.add(Arc::new(BvhNode::initialise(&mut boxes1)));
 
     let light = Arc::new(DiffuseLight::color_new(Vector::new(7.0, 7.0, 7.0)));
+    lights.add(Arc::new(Quad::new(
+        Vector::new(123.0, 554.0, 147.0),
+        Vector::new(300.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 265.0),
+        light.clone(),
+    )));
+
     world.add(Arc::new(Quad::new(
         Vector::new(123.0, 554.0, 147.0),
         Vector::new(300.0, 0.0, 0.0),
@@ -501,16 +512,16 @@ fn final_scene() {
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.000001 {
-        bouncing_spheres();
         checkered_spheres();
         earth();
         perlin_spheres();
         quads();
         simple_light();
-        cornell_smoke();
-        final_scene();
-    } else {
         cornell_box();
+        cornell_smoke();
+        bouncing_spheres();
+    } else {
+        final_scene();
     }
     exit(0);
 }
