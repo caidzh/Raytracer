@@ -59,14 +59,14 @@ impl Material for Lambertian {
         srec.skip_pdf = false;
         true
     }
-    fn scattering_pdf(&self, _r_in: &Ray, _rec: HitRecord, _scattered: &mut Ray) -> f64 {
-        // let cos_theta = rec.normal.dot(&scattered.direction.unit());
-        // if cos_theta < 0.0 {
-        //     0.0
-        // } else {
-        //     cos_theta / PI
-        // }
-        1.0 / (4.0 * PI)
+    fn scattering_pdf(&self, _r_in: &Ray, rec: HitRecord, scattered: &mut Ray) -> f64 {
+        let cos_theta = rec.normal.dot(&scattered.direction.unit());
+        if cos_theta < 0.0 {
+            0.0
+        } else {
+            cos_theta / PI
+        }
+        // 1.0 / (4.0 * PI)
     }
 }
 
@@ -183,6 +183,9 @@ impl Material for Isotropic {
         srec.pdf_ptr = Some(Arc::new(SpherePdf {}));
         srec.skip_pdf = false;
         true
+    }
+    fn scattering_pdf(&self, _r_in: &Ray, _rec: HitRecord, _scattered: &mut Ray) -> f64 {
+        1.0 / (4.0 * PI)
     }
 }
 

@@ -52,7 +52,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             aspect_ratio: 1.0,
-            image_width: 600,
+            image_width: 800,
             image_height: 0,
             samples_per_pixel: 2500,
             pixel_samples_scale: 0.0,
