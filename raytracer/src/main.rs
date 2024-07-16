@@ -3,6 +3,7 @@ use std::sync::Arc;
 pub mod aabb;
 pub mod bvh;
 pub mod camera;
+pub mod canny;
 pub mod constant_medium;
 pub mod hittable;
 pub mod hittable_list;
@@ -458,10 +459,15 @@ fn final_scene() {
     ));
     world.add(boundary.clone());
     world.add(Arc::new(ConstantMedium::color_new(
-        boundary,
+        boundary.clone(),
         0.2,
         Vector::new(0.2, 0.4, 0.9),
     )));
+    // lights.add(Arc::new(Sphere::new(
+    //     Vector::new(360.0, 150.0, 145.0),
+    //     70.0,
+    //     light,
+    // )));
     boundary = Arc::new(Sphere::new(
         Vector::new(0.0, 0.0, 0.0),
         5000.0,

@@ -1,3 +1,4 @@
+use image::Rgb;
 use rand::distributions::Uniform;
 use rand::Rng;
 
@@ -23,4 +24,8 @@ pub fn random_double_range(min: f64, max: f64) -> f64 {
 pub fn random_int_range(min: u32, max: u32) -> u32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(min..=max)
+}
+
+pub fn rgb_to_gray(pixel: &Rgb<u8>) -> f64 {
+    pixel[0] as f64 * 0.299 + pixel[1] as f64 * 0.587 + pixel[2] as f64 * 0.114
 }

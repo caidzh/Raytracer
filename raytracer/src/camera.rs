@@ -6,6 +6,7 @@ use std::fs::File;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+use crate::canny::{Canny, Matrix};
 use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::interval::Interval;
@@ -13,9 +14,9 @@ use crate::material::ScatterRecord;
 // use crate::pdf::CosinePdf;
 use crate::pdf::{HittablePdf, MixturePdf, Pdf};
 use crate::ray::Ray;
-use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::random_double;
 use crate::rtweekend::INFINITY;
+use crate::rtweekend::{self, degrees_to_radians};
 // use crate::rtweekend::PI;
 // use crate::rtweekend::random_double_range;
 use crate::vec3::Vector;
@@ -52,9 +53,9 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             aspect_ratio: 1.0,
-            image_width: 800,
+            image_width: 600,
             image_height: 0,
-            samples_per_pixel: 2500,
+            samples_per_pixel: 400,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
@@ -81,7 +82,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList, lights: Arc<dyn Hittable>) {
-        let path = std::path::Path::new("output/book2/image23.jpg");
+        let path = std::path::Path::new("output/book2/image23-3.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -133,7 +134,8 @@ impl Camera {
         }
         progress.lock().unwrap().finish();
         let img = Some(Arc::try_unwrap(img).unwrap().into_inner().unwrap());
-        let img = img.as_ref().unwrap().clone();
+        let mut img = img.as_ref().unwrap().clone();
+        let img = Self::edge_detection(&mut img, 100, 150, 1);
         println!(
             "Ouput image as \"{}\"",
             style(path.to_str().unwrap()).yellow()
@@ -311,6 +313,132 @@ impl Camera {
         let gbyte: u8 = (intensity.clamp(pixel_color.y) * 255.99).round() as u8;
         let bbyte: u8 = (intensity.clamp(pixel_color.z) * 255.99).round() as u8;
         *pixel = image::Rgb([rbyte, gbyte, bbyte]);
+    }
+    pub fn edge_detection(img: &mut RgbImage, l: u8, r: u8, connectnum: u8) -> RgbImage {
+        let canny = Canny::new();
+        let mut gradients: Matrix =
+            Matrix::new(img.height() as usize - 2, img.width() as usize - 2);
+        let mut direction: Matrix =
+            Matrix::new(img.height() as usize - 2, img.width() as usize - 2);
+        for i in 0..img.height() - 2 {
+            for j in 0..img.width() - 2 {
+                let mut dx: f64 = 0.0;
+                let mut dy: f64 = 0.0;
+                for k1 in 0..=2 {
+                    for k2 in 0..=2 {
+                        let pixel = img.get_pixel(j + k1, i + k2);
+                        let gray = rtweekend::rgb_to_gray(pixel);
+                        dx += gray * canny.sobel.gx.data[k1 as usize][k2 as usize];
+                        dy += gray * canny.sobel.gy.data[k1 as usize][k2 as usize];
+                    }
+                }
+                gradients.data[i as usize][j as usize] = (dx * dx + dy * dy).sqrt();
+                if dx == 0.0 {
+                    direction.data[i as usize][j as usize] = rtweekend::PI / 2.0;
+                } else {
+                    direction.data[i as usize][j as usize] = (dy / dx).atan();
+                }
+            }
+        }
+        let mut nms: Matrix = Matrix::new(img.height() as usize - 4, img.width() as usize - 4);
+        for i in 0..img.height() - 4 {
+            for j in 0..img.width() - 4 {
+                nms.data[i as usize][j as usize] = gradients.data[i as usize + 1][j as usize + 1];
+            }
+        }
+        for i in 1..img.height() - 3 {
+            for j in 1..img.width() - 3 {
+                let theta = direction.data[i as usize][j as usize];
+                let mut weight = theta.tan();
+                let mut d: Matrix = Matrix::new(2, 2);
+                if theta > rtweekend::PI / 4.0 {
+                    d.data[0][0] = 0.0;
+                    d.data[0][1] = 1.0;
+                    d.data[1][0] = 1.0;
+                    d.data[1][1] = 1.0;
+                    weight = 1.0 / weight;
+                }
+                if theta > 0.0 && theta <= rtweekend::PI / 4.0 {
+                    d.data[0][0] = 1.0;
+                    d.data[0][1] = 0.0;
+                    d.data[1][0] = 1.0;
+                    d.data[1][1] = 1.0;
+                }
+                if theta > -rtweekend::PI / 4.0 && theta <= 0.0 {
+                    d.data[0][0] = 1.0;
+                    d.data[0][1] = 0.0;
+                    d.data[1][0] = 1.0;
+                    d.data[1][1] = -1.0;
+                    weight *= -1.0;
+                }
+                if theta <= -rtweekend::PI / 4.0 {
+                    d.data[0][0] = 0.0;
+                    d.data[0][1] = -1.0;
+                    d.data[1][0] = 1.0;
+                    d.data[1][1] = -1.0;
+                    weight = -1.0 / weight;
+                }
+                let g1 = gradients.data[i as usize + (d.data[0][0] as usize)]
+                    [j as usize + (d.data[0][1] as usize)];
+                let g2 = gradients.data[i as usize + (d.data[1][0] as usize)]
+                    [j as usize + (d.data[1][1] as usize)];
+                let g3 = gradients.data[i as usize - (d.data[0][0] as usize)]
+                    [j as usize - (d.data[0][1] as usize)];
+                let g4 = gradients.data[i as usize - (d.data[1][0] as usize)]
+                    [j as usize - (d.data[1][1] as usize)];
+                let grade_count1 = g1 * weight + g2 * (1.0 - weight);
+                let grade_count2 = g3 * weight + g4 * (1.0 - weight);
+                if grade_count1 > gradients.data[i as usize][j as usize]
+                    || grade_count2 > gradients.data[i as usize][j as usize]
+                {
+                    nms.data[i as usize - 1][j as usize - 1] = 0.0;
+                }
+            }
+        }
+        let mut final_image: RgbImage = ImageBuffer::new(img.width() - 4, img.height() - 4);
+        for i in 1..img.height() - 4 {
+            for j in 1..img.width() - 4 {
+                let data = nms.data[i as usize][j as usize].floor() as u8;
+                if data >= r {
+                    let pixel = final_image.get_pixel_mut(j, i);
+                    *pixel = image::Rgb([0, 0, 0]);
+                } else if data <= l {
+                    let pixel = final_image.get_pixel_mut(j, i);
+                    *pixel = image::Rgb([255, 255, 255]);
+                } else {
+                    let mut count = 0;
+                    if nms.data[i as usize - 1][j as usize - 1] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize - 1][j as usize] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize - 1][j as usize + 1] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize][j as usize - 1] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize][j as usize + 1] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize + 1][j as usize - 1] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize + 1][j as usize] == 0.0 {
+                        count += 1;
+                    }
+                    if nms.data[i as usize + 1][j as usize + 1] == 0.0 {
+                        count += 1;
+                    }
+                    if count >= connectnum {
+                        let pixel = final_image.get_pixel_mut(j, i);
+                        *pixel = image::Rgb([0, 0, 0]);
+                    }
+                }
+            }
+        }
+        final_image
     }
     fn linear_to_gamma(linear_component: f64) -> f64 {
         if linear_component > 0.0 {
