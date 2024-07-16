@@ -55,7 +55,7 @@ impl Default for Camera {
             aspect_ratio: 1.0,
             image_width: 600,
             image_height: 0,
-            samples_per_pixel: 400,
+            samples_per_pixel: 100,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),

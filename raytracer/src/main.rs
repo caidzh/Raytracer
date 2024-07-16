@@ -18,12 +18,14 @@ pub mod ray;
 pub mod rtweekend;
 pub mod sphere;
 pub mod texture;
+pub mod triangle;
 pub mod vec3;
 
 use bvh::BvhNode;
 use hittable::{RotateY, Translate};
 use quad::box_object;
 use texture::{CheckerTexture, ImageTexture};
+use triangle::Triangle;
 
 use crate::camera::Camera;
 use crate::constant_medium::ConstantMedium;
@@ -515,6 +517,27 @@ fn final_scene() {
     let mut cam: Camera = Default::default();
     cam.render(world, Arc::new(lights));
 }
+fn test_triangle() {
+    let mut world: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
+    let light = Arc::new(DiffuseLight::color_new(Vector::new(7.0, 7.0, 7.0)));
+    lights.add(Arc::new(Triangle::new(
+        Vector::new(123.0, 400.0, 147.0),
+        Vector::new(300.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 265.0),
+        light.clone(),
+    )));
+
+    world.add(Arc::new(Triangle::new(
+        Vector::new(123.0, 400.0, 147.0),
+        Vector::new(300.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 265.0),
+        light,
+    )));
+
+    let mut cam: Camera = Default::default();
+    cam.render(world, Arc::new(lights));
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.000001 {
@@ -526,6 +549,7 @@ fn main() {
         cornell_box();
         cornell_smoke();
         bouncing_spheres();
+        test_triangle();
     } else {
         final_scene();
     }

@@ -50,17 +50,17 @@ pub struct Sobel {
 impl Sobel {
     pub fn new() -> Self {
         let mut val: Sobel = Default::default();
-        let row: Vec<f64> = vec![-1.0,0.0,1.0];
+        let row: Vec<f64> = vec![-1.0, 0.0, 1.0];
         val.gx.data.push(row);
-        let row: Vec<f64> = vec![-2.0,0.0,2.0];
+        let row: Vec<f64> = vec![-2.0, 0.0, 2.0];
         val.gx.data.push(row);
-        let row: Vec<f64> = vec![-1.0,0.0,1.0];
+        let row: Vec<f64> = vec![-1.0, 0.0, 1.0];
         val.gx.data.push(row);
-        let row: Vec<f64> = vec![-1.0,-2.0,-1.0];
+        let row: Vec<f64> = vec![-1.0, -2.0, -1.0];
         val.gy.data.push(row);
-        let row: Vec<f64> = vec![0.0,0.0,0.0];
+        let row: Vec<f64> = vec![0.0, 0.0, 0.0];
         val.gy.data.push(row);
-        let row: Vec<f64> = vec![1.0,2.0,1.0];
+        let row: Vec<f64> = vec![1.0, 2.0, 1.0];
         val.gy.data.push(row);
         val
     }
@@ -76,7 +76,11 @@ pub struct Canny {
 
 impl Canny {
     pub fn new() -> Self {
-        let mut val: Canny = Canny{length:5,sigma:1.6,..Default::default()};
+        let mut val: Canny = Canny {
+            length: 5,
+            sigma: 1.6,
+            ..Default::default()
+        };
         let k_ = 2.0 * rtweekend::PI * val.sigma * val.sigma;
         let k = val.length / 2;
         for _i in 0..val.length {
