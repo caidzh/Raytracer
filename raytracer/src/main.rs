@@ -10,6 +10,7 @@ pub mod hittable_list;
 pub mod image;
 pub mod interval;
 pub mod material;
+pub mod normal_mapping;
 pub mod onb;
 pub mod pdf;
 pub mod perlin;
@@ -23,6 +24,7 @@ pub mod vec3;
 
 use bvh::BvhNode;
 use hittable::{RotateY, Translate};
+use normal_mapping::NormalMapping;
 use quad::box_object;
 use texture::{CheckerTexture, ImageTexture};
 use triangle::Triangle;
@@ -244,61 +246,70 @@ fn simple_light() {
 fn cornell_box() {
     let mut world: HittableList = Default::default();
     let mut lights: HittableList = Default::default();
-    let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
+    // let red = Arc::new(Lambertian::new(Vector::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
     let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
-    let light = Arc::new(DiffuseLight::color_new(Vector::new(15.0, 15.0, 15.0)));
+    let light = Arc::new(DiffuseLight::color_new(Vector::new(30.0, 30.0, 30.0)));
 
     world.add(Arc::new(Quad::new(
         Vector::new(555.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, 555.0),
         Vector::new(0.0, 555.0, 0.0),
-        green,
+        green.clone(),
     )));
     world.add(Arc::new(Quad::new(
         Vector::new(0.0, 0.0, 555.0),
         Vector::new(0.0, 0.0, -555.0),
         Vector::new(0.0, 555.0, 0.0),
-        red,
+        green,
     )));
     world.add(Arc::new(Quad::new(
         Vector::new(213.0, 554.0, 227.0),
         Vector::new(130.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, 105.0),
-        light,
+        light.clone(),
     )));
     world.add(Arc::new(Quad::new(
+        Vector::new(213.0, 200.0, 227.0),
+        Vector::new(130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 105.0),
+        light,
+    )));
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping2.jpg",
         Vector::new(0.0, 555.0, 0.0),
         Vector::new(555.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, 555.0),
         white.clone(),
     )));
-    world.add(Arc::new(Quad::new(
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping2.jpg",
         Vector::new(0.0, 0.0, 555.0),
         Vector::new(555.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, -555.0),
         white.clone(),
     )));
-    world.add(Arc::new(Quad::new(
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping2.jpg",
         Vector::new(555.0, 0.0, 555.0),
         Vector::new(-555.0, 0.0, 0.0),
         Vector::new(0.0, 555.0, 0.0),
-        white.clone(),
-    )));
-    let box1 = box_object(
-        Vector::new(0.0, 0.0, 0.0),
-        Vector::new(165.0, 330.0, 165.0),
         white,
-    );
-    let box1 = Arc::new(RotateY::new(box1, 15.0));
-    let box1 = Arc::new(Translate::new(box1, &Vector::new(265.0, 0.0, 295.0)));
-    world.add(box1);
-    let glass = Arc::new(Dielectric::new(1.5));
-    world.add(Arc::new(Sphere::new(
-        Vector::new(190.0, 90.0, 190.0),
-        90.0,
-        glass,
     )));
+    // let box1 = box_object(
+    //     Vector::new(0.0, 0.0, 0.0),
+    //     Vector::new(165.0, 330.0, 165.0),
+    //     white,
+    // );
+    // let box1 = Arc::new(RotateY::new(box1, 15.0));
+    // let box1 = Arc::new(Translate::new(box1, &Vector::new(265.0, 0.0, 295.0)));
+    // world.add(box1);
+    // let glass = Arc::new(Dielectric::new(1.5));
+    // world.add(Arc::new(Sphere::new(
+    //     Vector::new(190.0, 90.0, 190.0),
+    //     90.0,
+    //     glass,
+    // )));
     // let box2 = box_object(
     //     Vector::new(0.0, 0.0, 0.0),
     //     Vector::new(165.0, 165.0, 165.0),
@@ -307,18 +318,24 @@ fn cornell_box() {
     // let box2 = Arc::new(RotateY::new(box2, -18.0));
     // let box2 = Arc::new(Translate::new(box2, &Vector::new(130.0, 0.0, 65.0)));
     // world.add(box2);
-    let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(15.0, 15.0, 15.0)));
+    let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(30.0, 30.0, 30.0)));
     lights.add(Arc::new(Quad::new(
         Vector::new(343.0, 554.0, 332.0),
         Vector::new(-130.0, 0.0, 0.0),
         Vector::new(0.0, 0.0, -105.0),
         m.clone(),
     )));
-    lights.add(Arc::new(Sphere::new(
-        Vector::new(190.0, 90.0, 190.0),
-        90.0,
+    lights.add(Arc::new(Quad::new(
+        Vector::new(343.0, 200.0, 332.0),
+        Vector::new(-130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -105.0),
         m,
     )));
+    // lights.add(Arc::new(Sphere::new(
+    //     Vector::new(190.0, 90.0, 190.0),
+    //     90.0,
+    //     m,
+    // )));
     let mut cam: Camera = Default::default();
     cam.render(world, Arc::new(lights));
 }
@@ -546,12 +563,12 @@ fn main() {
         perlin_spheres();
         quads();
         simple_light();
-        cornell_box();
+        final_scene();
         cornell_smoke();
         bouncing_spheres();
         test_triangle();
     } else {
-        final_scene();
+        cornell_box();
     }
     exit(0);
 }

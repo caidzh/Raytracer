@@ -196,3 +196,33 @@ pub struct ScatterRecord {
     pub skip_pdf: bool,
     pub skip_pdf_ray: Ray,
 }
+
+pub struct NormalMappingMaterial {
+    tex: Arc<dyn Texture>,
+}
+
+impl NormalMappingMaterial {
+    pub fn new(a: Vector) -> Self {
+        Self {
+            tex: Arc::new(SolidColor::new(a)),
+        }
+    }
+}
+
+impl Material for NormalMappingMaterial {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
+        // let mut reflected: Vector = Vector::reflect(&r_in.direction.unit(), &rec.normal);
+        // reflected = reflected.unit() + (Vector::random_unit_vector() * self.fuzz);
+        // srec.attenuation = self.albedo;
+        // srec.pdf_ptr = None;
+        // srec.skip_pdf = true;
+        // srec.skip_pdf_ray = Ray::new(rec.p, reflected, r_in.time);
+        // true
+        let reflected: Vector = Vector::reflect(&r_in.direction.unit(), &rec.normal);
+        srec.attenuation = self.tex.value(rec.u, rec.v, rec.p);
+        srec.pdf_ptr = None;
+        srec.skip_pdf = true;
+        srec.skip_pdf_ray = Ray::new(rec.p, reflected, r_in.time);
+        true
+    }
+}
