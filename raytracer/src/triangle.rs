@@ -6,6 +6,7 @@ use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::rtweekend::{random_double, random_double_range, INFINITY};
 use crate::vec3::Vector;
 
 pub struct Triangle {
@@ -17,25 +18,28 @@ pub struct Triangle {
     mat: Arc<dyn Material>,
     bbox: AABB,
     d: f64,
+    area: f64,
 }
 
 impl Triangle {
     pub fn new(a: Vector, b: Vector, c: Vector, d: Arc<dyn Material>) -> Self {
         let mut val: Triangle = Self {
             q: a,
-            u: b,
-            v: c,
+            u: b - a,
+            v: c - a,
             w: Default::default(),
             normal: Default::default(),
             mat: d,
             bbox: Default::default(),
             d: 0.0,
+            area: 0.0,
         };
-        let n = b.cross(&c);
+        let n = val.u.cross(&val.v);
         val.normal = n.unit();
         val.d = val.normal.dot(&a);
         val.w = n / n.length_square();
         val.set_bounding_box();
+        val.area = n.length() / 2.0;
         val
     }
     pub fn set_bounding_box(&mut self) {
@@ -84,5 +88,23 @@ impl Hittable for Triangle {
     }
     fn bounding_box(&self) -> AABB {
         self.bbox
+    }
+    fn pdf_value(&self, origin: Vector, direction: Vector) -> f64 {
+        if let Some(rec) = self.hit(
+            &Ray::new(origin, direction, 0.0),
+            &Interval::new(0.001, INFINITY),
+        ) {
+            let distance_squared = rec.t * rec.t * direction.length_square();
+            let cosine = (direction.dot(&rec.normal) / direction.length()).abs();
+            distance_squared / (cosine * self.area)
+        } else {
+            0.0
+        }
+    }
+    fn random(&self, origin: Vector) -> Vector {
+        let a = random_double();
+        let b = random_double_range(0.0, 1.0 - a);
+        let p = self.q + self.u * a + self.v * b;
+        p - origin
     }
 }

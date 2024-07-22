@@ -1,0 +1,26 @@
+# File produced by AccuTrans 3D
+
+newmtl Office_Cha
+  Ns 35.29
+  d 1.0
+  illum 2
+  Kd 0.7412 0.7176 0.6824
+  Ka 0.7412 0.7176 0.6824
+  Ks 0.898 0.898 0.898
+
+newmtl Office_Cha_1
+  Ns 102.6
+  d 1.0
+  illum 2
+  Kd 0.0784 0.0941 0.1059
+  Ka 0.0784 0.0941 0.1059
+  Ks 0.898 0.898 0.898
+
+newmtl Office_Cha_2
+  Ns 77.2
+  d 1.0
+  illum 2
+  Kd 0.4588 0.4784 0.502
+  Ka 0.4588 0.4784 0.502
+  Ks 0.898 0.898 0.898
+  map_Kd E:\DIMPLE~1.jpg

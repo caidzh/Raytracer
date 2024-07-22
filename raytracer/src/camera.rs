@@ -52,19 +52,19 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            aspect_ratio: 1.0,
-            image_width: 600,
+            aspect_ratio: 16.0 / 9.0,
+            image_width: 1920,
             image_height: 0,
-            samples_per_pixel: 500,
+            samples_per_pixel: 2500,
             pixel_samples_scale: 0.0,
             center: Vector::new(0.0, 0.0, 0.0),
             pixel00_loc: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_u: Vector::new(0.0, 0.0, 0.0),
             pixel_delta_v: Vector::new(0.0, 0.0, 0.0),
-            max_depth: 100,
+            max_depth: 50,
             vfov: 40.0,
-            lookfrom: Vector::new(278.0, 278.0, -800.0),
-            lookat: Vector::new(278.0, 278.0, 0.0),
+            lookfrom: Vector::new(800.0, 450.0, -800.0),
+            lookat: Vector::new(800.0, 450.0, 0.0),
             vup: Vector::new(0.0, 1.0, 0.0),
             u: Vector::new(0.0, 0.0, 0.0),
             v: Vector::new(0.0, 0.0, 0.0),
@@ -82,7 +82,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn render(&mut self, world: HittableList, lights: Arc<dyn Hittable>) {
-        let path = std::path::Path::new("output/test/image2.jpg");
+        let path = std::path::Path::new("output/test/image5.jpg");
         let prefix = path.parent().unwrap();
         std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
         self.initialise();
@@ -404,7 +404,8 @@ impl Camera {
                     *pixel = image::Rgb([0, 0, 0]);
                 } else if data <= l {
                     let pixel = final_image.get_pixel_mut(j, i);
-                    *pixel = image::Rgb([255, 255, 255]);
+                    let pixel1 = img.get_pixel(j + 1, i + 1);
+                    *pixel = image::Rgb([pixel1[0], pixel1[1], pixel1[2]]);
                 } else {
                     let mut count = 0;
                     if nms.data[i as usize - 1][j as usize - 1] == 0.0 {

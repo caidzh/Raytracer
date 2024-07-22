@@ -11,6 +11,7 @@ pub mod image;
 pub mod interval;
 pub mod material;
 pub mod normal_mapping;
+pub mod obj;
 pub mod onb;
 pub mod pdf;
 pub mod perlin;
@@ -33,6 +34,7 @@ use crate::camera::Camera;
 use crate::constant_medium::ConstantMedium;
 use crate::hittable_list::HittableList;
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
+use crate::obj::get_obj;
 use crate::quad::Quad;
 use crate::rtweekend::{random_double, random_double_range};
 use crate::sphere::Sphere;
@@ -410,7 +412,7 @@ fn cornell_smoke() {
     let mut cam: Camera = Default::default();
     cam.render(world, Arc::new(lights));
 }
-fn final_scene() {
+fn book2_final_scene() {
     let mut boxes1: HittableList = Default::default();
     let mut lights: HittableList = Default::default();
     let ground = Arc::new(Lambertian::new(Vector::new(0.48, 0.83, 0.53)));
@@ -555,6 +557,162 @@ fn test_triangle() {
     let mut cam: Camera = Default::default();
     cam.render(world, Arc::new(lights));
 }
+fn test_obj() {
+    let mut world: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
+    let obj = get_obj("pineapple.obj", 200.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(250.0, 220.0, 50.0));
+    world.add(Arc::new(obj));
+    let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Vector::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::color_new(Vector::new(30.0, 30.0, 30.0)));
+
+    world.add(Arc::new(Quad::new(
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        Vector::new(0.0, 555.0, 0.0),
+        green.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 555.0),
+        Vector::new(0.0, 0.0, -555.0),
+        Vector::new(0.0, 555.0, 0.0),
+        green,
+    )));
+    world.add(Arc::new(Quad::new(
+        Vector::new(213.0, 554.0, 227.0),
+        Vector::new(130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 105.0),
+        light,
+    )));
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping3.jpg",
+        Vector::new(0.0, 555.0, 0.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping3.jpg",
+        Vector::new(0.0, 0.0, 555.0),
+        Vector::new(555.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -555.0),
+        white.clone(),
+    )));
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping3.jpg",
+        Vector::new(555.0, 0.0, 555.0),
+        Vector::new(-555.0, 0.0, 0.0),
+        Vector::new(0.0, 555.0, 0.0),
+        white,
+    )));
+    let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(30.0, 30.0, 30.0)));
+    lights.add(Arc::new(Quad::new(
+        Vector::new(343.0, 554.0, 332.0),
+        Vector::new(-130.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -105.0),
+        m,
+    )));
+    let mut cam: Camera = Default::default();
+    cam.render(world, Arc::new(lights));
+}
+fn final_scene() {
+    let mut world: HittableList = Default::default();
+    let mut lights: HittableList = Default::default();
+    let white = Arc::new(Lambertian::new(Vector::new(0.73, 0.73, 0.73)));
+    let light = Arc::new(DiffuseLight::color_new(Vector::new(20.0, 20.0, 20.0)));
+
+    //left
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping3.jpg",
+        Vector::new(1600.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 1600.0),
+        Vector::new(0.0, 900.0, 0.0),
+        white.clone(),
+    )));
+    //right
+    world.add(Arc::new(NormalMapping::new(
+        "normalmapping3.jpg",
+        Vector::new(0.0, 0.0, 1600.0),
+        Vector::new(0.0, 0.0, -1600.0),
+        Vector::new(0.0, 900.0, 0.0),
+        white.clone(),
+    )));
+    //ceiling
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 900.0, 0.0),
+        Vector::new(1600.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 1600.0),
+        white.clone(),
+    )));
+    //ceiling light
+    world.add(Arc::new(Quad::new(
+        Vector::new(700.0, 899.0, 700.0),
+        Vector::new(200.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 200.0),
+        light.clone(),
+    )));
+    let m: Arc<dyn Material> = Arc::new(DiffuseLight::color_new(Vector::new(20.0, 20.0, 20.0)));
+    lights.add(Arc::new(Quad::new(
+        Vector::new(700.0, 899.0, 700.0),
+        Vector::new(200.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, 200.0),
+        m.clone(),
+    )));
+    //mid
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 1600.0),
+        Vector::new(1600.0, 0.0, 0.0),
+        Vector::new(0.0, 900.0, 0.0),
+        white.clone(),
+    )));
+    //floor
+    let floor_img = Arc::new(Lambertian::arc_new(Arc::new(ImageTexture::new(
+        "floor.jpg",
+    ))));
+    world.add(Arc::new(Quad::new(
+        Vector::new(0.0, 0.0, 1600.0),
+        Vector::new(1600.0, 0.0, 0.0),
+        Vector::new(0.0, 0.0, -1600.0),
+        floor_img,
+    )));
+    //door
+    let obj = get_obj("model.obj", 400.0);
+    let obj = RotateY::new(Arc::new(obj), 90.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(400.0, 400.0, 1550.0));
+    world.add(Arc::new(obj));
+    //computer screen
+    let obj = get_obj("computerScreen.obj", 800.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(1500.0, 280.0, 1200.0));
+    world.add(Arc::new(obj));
+    //desk
+    let obj = get_obj("myDesk.obj", 300.0);
+    let obj = RotateY::new(Arc::new(obj), 90.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(1200.0, 0.0, 1200.0));
+    world.add(Arc::new(obj));
+    //mario
+    let obj = get_obj("mario.obj", 140.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(1000.0, 430.0, 1200.0));
+    world.add(Arc::new(obj));
+    //chairDesk
+    let obj = get_obj("chairDesk.obj", 700.0);
+    let obj = RotateY::new(Arc::new(obj), 135.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(1200.0, 0.0, 950.0));
+    world.add(Arc::new(obj));
+    //bed
+    let obj = get_obj("bed1.obj", 500.0);
+    let obj = RotateY::new(Arc::new(obj), -90.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(300.0, 100.0, 600.0));
+    world.add(Arc::new(obj));
+    //coffeedesk
+    let obj = get_obj("littlebookcase.obj", 400.0);
+    let obj = RotateY::new(Arc::new(obj), 90.0);
+    let obj = Translate::new(Arc::new(obj), &Vector::new(1400.0, 200.0, 400.0));
+    world.add(Arc::new(obj));
+    //do
+    let mut cam: Camera = Default::default();
+    cam.render(world, Arc::new(lights));
+}
 fn main() {
     let f = random_double_range(0.0, 1.0);
     if f < 0.000001 {
@@ -563,12 +721,14 @@ fn main() {
         perlin_spheres();
         quads();
         simple_light();
-        final_scene();
+        cornell_box();
         cornell_smoke();
         bouncing_spheres();
         test_triangle();
+        book2_final_scene();
+        test_obj();
     } else {
-        cornell_box();
+        final_scene();
     }
     exit(0);
 }
